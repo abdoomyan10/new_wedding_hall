@@ -2,7 +2,7 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/network/network_info.dart';
-import '../../domain/repositories/expense_ropsitory.dart';
+import '../../domain/repositories/expense_repository.dart';
 import '../datasources/expense_data_source.dart';
 import '../../domain/entities/expense_entity.dart';
 import '../../domain/entities/expense_stats_entity.dart';
@@ -11,10 +11,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   final ExpenseDataSource dataSource;
   final NetworkInfo networkInfo;
 
-  ExpenseRepositoryImpl({
-    required this.dataSource,
-    required this.networkInfo,
-  });
+  ExpenseRepositoryImpl({required this.dataSource, required this.networkInfo});
 
   @override
   Future<Either<Failure, void>> addExpense(ExpenseEntity expense) async {
@@ -80,7 +77,9 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       if (await networkInfo.isConnected || true) {
         // التحقق من وجود التكلفة قبل الحذف
         final expenses = await dataSource.getExpenses();
-        final expenseExists = expenses.any((expense) => expense.id == expenseId);
+        final expenseExists = expenses.any(
+          (expense) => expense.id == expenseId,
+        );
 
         if (!expenseExists) {
           return Left(NotFoundFailure('التكلفة غير موجودة'));
@@ -98,16 +97,22 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteMultipleExpenses(List<String> expenseIds) async {
+  Future<Either<Failure, void>> deleteMultipleExpenses(
+    List<String> expenseIds,
+  ) async {
     try {
       if (await networkInfo.isConnected || true) {
         final expenses = await dataSource.getExpenses();
 
         // التحقق من وجود جميع التكاليف قبل الحذف
         for (final expenseId in expenseIds) {
-          final expenseExists = expenses.any((expense) => expense.id == expenseId);
+          final expenseExists = expenses.any(
+            (expense) => expense.id == expenseId,
+          );
           if (!expenseExists) {
-            return Left(NotFoundFailure('التكلفة بالمعرف $expenseId غير موجودة'));
+            return Left(
+              NotFoundFailure('التكلفة بالمعرف $expenseId غير موجودة'),
+            );
           }
         }
 

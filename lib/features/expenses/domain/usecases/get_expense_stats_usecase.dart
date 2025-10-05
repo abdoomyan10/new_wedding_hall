@@ -2,7 +2,7 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failure.dart';
 import '../entities/expense_stats_entity.dart';
-import '../repositories/expense_ropsitory.dart';
+import '../repositories/expense_repository.dart';
 
 class GetExpenseStatsUseCase {
   final ExpenseRepository repository;

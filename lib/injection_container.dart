@@ -1,6 +1,4 @@
 import 'package:get_it/get_it.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:get_it/get_it.dart';
 import 'package:new_wedding_hall/core/network/network_info.dart';
 import 'package:new_wedding_hall/features/expenses/data/datasources/expense_data_source.dart';
 import 'package:new_wedding_hall/features/expenses/data/repositories/expense_repository_impl.dart';
@@ -24,8 +22,8 @@ import 'package:new_wedding_hall/features/payments/domain/usecases/add_payment_u
 import 'package:new_wedding_hall/features/payments/domain/usecases/get_payment_usecase.dart';
 import 'package:new_wedding_hall/features/payments/domain/usecases/get_payments_stats_usecase.dart';
 import 'package:new_wedding_hall/features/payments/presentation/cubit/payment_cubit.dart';
-import 'features/expenses/domain/repositories/expense_ropsitory.dart';
-import 'features/home/data/repositories/home_repsoitory_impl.dart';
+import 'features/expenses/domain/repositories/expense_repository.dart';
+import 'features/home/data/repositories/home_repository_impl.dart';
 import 'features/report/data/datasources/report_data_source.dart';
 import 'features/report/data/datasources/report_local_data_source.dart';
 import 'features/report/data/repositories/report_repository_impl.dart';
@@ -43,8 +41,8 @@ import 'features/report/presentation/cubit/report_cubit.dart';
 final GetIt sl = GetIt.instance;
 
 Future<void> init() async {
-  // تهيئة Firebase
-  await Firebase.initializeApp();
+  // Firebase should be initialized in main (with platform options).
+  // e.g. in main(): await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // ========== CORE DEPENDENCIES ==========
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl());

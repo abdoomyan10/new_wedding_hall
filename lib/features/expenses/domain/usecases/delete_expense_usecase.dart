@@ -1,7 +1,8 @@
 // features/expenses/domain/usecases/delete_expense_usecase.dart
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failure.dart';
-import '../repositories/expense_ropsitory.dart';
+import '../repositories/expense_repository.dart';
+
 class DeleteExpenseUseCase {
   final ExpenseRepository repository;
 
