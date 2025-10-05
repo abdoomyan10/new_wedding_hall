@@ -1,6 +1,7 @@
 // features/reports/data/datasources/report_local_data_source.dart
-import 'package:wedding_hall/core/error/exceptions.dart';
-import 'package:wedding_hall/features/report/data/datasources/report_data_source.dart';
+
+import 'package:new_wedding_hall/core/error/exceptions.dart';
+import 'package:new_wedding_hall/features/report/data/datasources/report_data_source.dart';
 
 import '../../domain/entities/report_entity.dart';
 import '../../domain/entities/report_summary_entity.dart';
@@ -20,7 +21,9 @@ class ReportLocalDataSourceImpl implements ReportDataSource {
         final totalRevenue = 5000.0 + (index * 1000);
         final expenses = 1000.0 + (index * 200);
         final netProfit = totalRevenue - expenses;
-        final profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+        final profitMargin = totalRevenue > 0
+            ? (netProfit / totalRevenue) * 100
+            : 0;
 
         return ReportModel(
           id: 'daily_${reportDate.toIso8601String()}',
@@ -51,7 +54,9 @@ class ReportLocalDataSourceImpl implements ReportDataSource {
         final totalRevenue = 35000.0 + (index * 5000);
         final expenses = 7000.0 + (index * 1000);
         final netProfit = totalRevenue - expenses;
-        final profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+        final profitMargin = totalRevenue > 0
+            ? (netProfit / totalRevenue) * 100
+            : 0;
 
         return ReportModel(
           id: 'weekly_${reportDate.toIso8601String()}',
@@ -82,7 +87,9 @@ class ReportLocalDataSourceImpl implements ReportDataSource {
         final totalRevenue = 150000.0 + (index * 20000);
         final expenses = 30000.0 + (index * 5000);
         final netProfit = totalRevenue - expenses;
-        final profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+        final profitMargin = totalRevenue > 0
+            ? (netProfit / totalRevenue) * 100
+            : 0;
 
         return ReportModel(
           id: 'monthly_${reportDate.toIso8601String()}',
@@ -140,7 +147,9 @@ class ReportLocalDataSourceImpl implements ReportDataSource {
           totalEvents = 30;
       }
 
-      final profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+      final profitMargin = totalRevenue > 0
+          ? (netProfit / totalRevenue) * 100
+          : 0;
 
       return ReportSummaryModel(
         totalRevenue: totalRevenue,
@@ -168,7 +177,8 @@ class ReportLocalDataSourceImpl implements ReportDataSource {
 
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final fileExtension = format == 'pdf' ? 'pdf' : 'xlsx';
-      final filePath = '/storage/emulated/0/Download/reports_${period}_$timestamp.$fileExtension';
+      final filePath =
+          '/storage/emulated/0/Download/reports_${period}_$timestamp.$fileExtension';
 
       // محاكاة نجاح التصدير
       print('✅ تم تصدير ${reports.length} تقرير كـ $format');
@@ -179,6 +189,7 @@ class ReportLocalDataSourceImpl implements ReportDataSource {
       throw CacheException('فشل في تصدير التقارير: ${e.toString()}');
     }
   }
+
   // في ملف report_local_data_source.dart - إضافة الدالة الكاملة
   @override
   Future<List<ReportEntity>> getYearlyReports() async {
@@ -192,7 +203,9 @@ class ReportLocalDataSourceImpl implements ReportDataSource {
         final totalRevenue = 1800000.0 + (index * 200000);
         final expenses = 360000.0 + (index * 40000);
         final netProfit = totalRevenue - expenses;
-        final profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+        final profitMargin = totalRevenue > 0
+            ? (netProfit / totalRevenue) * 100
+            : 0;
 
         return ReportModel(
           id: 'yearly_${reportDate.toIso8601String()}',

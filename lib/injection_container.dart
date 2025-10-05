@@ -1,38 +1,29 @@
-giimport 'package:get_it/get_it.dart';
+import 'package:get_it/get_it.dart';
 import 'package:firebase_core/firebase_core.dart';
-
-// Core imports
-import 'package:wedding_hall/core/network/network_info.dart';
-
-// Home feature imports
-import 'package:wedding_hall/features/home/data/datasources/home_local_data_source.dart';
-
-import 'package:wedding_hall/features/home/domain/repositories/home_repository.dart';
-import 'package:wedding_hall/features/home/domain/usecases/get_home_data_usecase.dart';
-
-import 'package:wedding_hall/features/home/presentation/cubit/home_cubit.dart';
-
-// Payments feature imports
-import 'package:wedding_hall/features/payments/data/datasources/payment_data_source.dart';
-import 'package:wedding_hall/features/payments/data/repositories/payment_repository_impl.dart';
-import 'package:wedding_hall/features/payments/domain/repositories/payment_repository.dart';
-import 'package:wedding_hall/features/payments/domain/usecases/add_payment_usecase.dart';
-import 'package:wedding_hall/features/payments/domain/usecases/delete_payment_usecase.dart';
-import 'package:wedding_hall/features/payments/domain/usecases/get_payment_usecase.dart';
-import 'package:wedding_hall/features/payments/domain/usecases/get_payments_stats_usecase.dart';
-import 'package:wedding_hall/features/payments/domain/usecases/update_payment_usecase.dart';
-import 'package:wedding_hall/features/payments/presentation/cubit/payment_cubit.dart';
-
-// Expenses feature imports
-import 'package:wedding_hall/features/expenses/data/datasources/expense_data_source.dart';
-import 'package:wedding_hall/features/expenses/data/repositories/expense_repository_impl.dart';
-
-import 'package:wedding_hall/features/expenses/domain/usecases/add_expense_usecase.dart';
-import 'package:wedding_hall/features/expenses/domain/usecases/delete_expense_usecase.dart';
-import 'package:wedding_hall/features/expenses/domain/usecases/get_expense_usecase.dart';
-import 'package:wedding_hall/features/expenses/domain/usecases/get_expense_stats_usecase.dart';
-import 'package:wedding_hall/features/expenses/presentation/cubit/expense_cubit.dart';
-
+import 'package:get_it/get_it.dart';
+import 'package:new_wedding_hall/core/network/network_info.dart';
+import 'package:new_wedding_hall/features/expenses/data/datasources/expense_data_source.dart';
+import 'package:new_wedding_hall/features/expenses/data/repositories/expense_repository_impl.dart';
+import 'package:new_wedding_hall/features/expenses/domain/usecases/add_expense_usecase.dart';
+import 'package:new_wedding_hall/features/expenses/domain/usecases/delete_expense_usecase.dart';
+import 'package:new_wedding_hall/features/expenses/domain/usecases/get_expense_stats_usecase.dart';
+import 'package:new_wedding_hall/features/expenses/domain/usecases/get_expense_usecase.dart';
+import 'package:new_wedding_hall/features/expenses/presentation/cubit/expense_cubit.dart';
+import 'package:new_wedding_hall/features/home/data/datasources/home_local_data_source.dart';
+import 'package:new_wedding_hall/features/home/data/models/search_use_case.dart';
+import 'package:new_wedding_hall/features/home/domain/repositories/home_repository.dart';
+import 'package:new_wedding_hall/features/home/domain/usecases/get_home_data_usecase.dart'
+    hide SearchUseCase;
+import 'package:new_wedding_hall/features/home/presentation/cubit/home_cubit.dart';
+import 'package:new_wedding_hall/features/payments/data/datasources/payment_data_source.dart';
+import 'package:new_wedding_hall/features/payments/data/repositories/payment_repository_impl.dart';
+import 'package:new_wedding_hall/features/payments/domain/repositories/payment_repository.dart';
+import 'package:new_wedding_hall/features/payments/domain/usecases/Delete_Payment_UseCase.dart';
+import 'package:new_wedding_hall/features/payments/domain/usecases/Update_Payment_UseCase.dart';
+import 'package:new_wedding_hall/features/payments/domain/usecases/add_payment_usecase.dart';
+import 'package:new_wedding_hall/features/payments/domain/usecases/get_payment_usecase.dart';
+import 'package:new_wedding_hall/features/payments/domain/usecases/get_payments_stats_usecase.dart';
+import 'package:new_wedding_hall/features/payments/presentation/cubit/payment_cubit.dart';
 import 'features/expenses/domain/repositories/expense_ropsitory.dart';
 import 'features/home/data/repositories/home_repsoitory_impl.dart';
 import 'features/report/data/datasources/report_data_source.dart';
@@ -48,8 +39,6 @@ import 'features/report/domain/usecases/get_yearly_reports_usecase.dart';
 import 'features/report/presentation/cubit/report_cubit.dart';
 
 // Reports feature imports
-
-
 
 final GetIt sl = GetIt.instance;
 
@@ -67,10 +56,7 @@ Future<void> init() async {
 
   // Repositories
   sl.registerLazySingleton<HomeRepository>(
-        () => HomeRepositoryImpl(
-      dataSource: sl(),
-      networkInfo: sl(),
-    ),
+    () => HomeRepositoryImpl(dataSource: sl(), networkInfo: sl()),
   );
 
   // Use Cases
@@ -79,11 +65,13 @@ Future<void> init() async {
   sl.registerLazySingleton(() => SearchUseCase(sl()));
 
   // Cubits
-  sl.registerFactory(() => HomeCubit(
-    getHomeDataUseCase: sl(),
-    refreshHomeDataUseCase: sl(),
-    searchUseCase: sl(),
-  ));
+  sl.registerFactory(
+    () => HomeCubit(
+      getHomeDataUseCase: sl(),
+      refreshHomeDataUseCase: sl(),
+      searchUseCase: sl(),
+    ),
+  );
 
   // ========== PAYMENTS FEATURE DEPENDENCIES ==========
 
@@ -92,10 +80,7 @@ Future<void> init() async {
 
   // Repositories
   sl.registerLazySingleton<PaymentRepository>(
-        () => PaymentRepositoryImpl(
-      dataSource: sl(),
-      networkInfo: sl(),
-    ),
+    () => PaymentRepositoryImpl(dataSource: sl(), networkInfo: sl()),
   );
 
   // Use Cases
@@ -106,13 +91,15 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetPaymentStatsUseCase(sl()));
 
   // Cubits
-  sl.registerFactory(() => PaymentCubit(
-    getPaymentsUseCase: sl(),
-    addPaymentUseCase: sl(),
-    updatePaymentUseCase: sl(),
-    deletePaymentUseCase: sl(),
-    getPaymentStatsUseCase: sl(),
-  ));
+  sl.registerFactory(
+    () => PaymentCubit(
+      getPaymentsUseCase: sl(),
+      addPaymentUseCase: sl(),
+      updatePaymentUseCase: sl(),
+      deletePaymentUseCase: sl(),
+      getPaymentStatsUseCase: sl(),
+    ),
+  );
 
   // ========== EXPENSES FEATURE DEPENDENCIES ==========
 
@@ -121,10 +108,7 @@ Future<void> init() async {
 
   // Repositories
   sl.registerLazySingleton<ExpenseRepository>(
-        () => ExpenseRepositoryImpl(
-      dataSource: sl(),
-      networkInfo: sl(),
-    ),
+    () => ExpenseRepositoryImpl(dataSource: sl(), networkInfo: sl()),
   );
 
   // Use Cases
@@ -134,12 +118,14 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetExpenseStatsUseCase(sl()));
 
   // Cubits
-  sl.registerFactory(() => ExpenseCubit(
-    getExpensesUseCase: sl(),
-    addExpenseUseCase: sl(),
-    deleteExpenseUseCase: sl(),
-    getExpenseStatsUseCase: sl(),
-  ));
+  sl.registerFactory(
+    () => ExpenseCubit(
+      getExpensesUseCase: sl(),
+      addExpenseUseCase: sl(),
+      deleteExpenseUseCase: sl(),
+      getExpenseStatsUseCase: sl(),
+    ),
+  );
 
   // ========== REPORTS FEATURE DEPENDENCIES ==========
 
@@ -148,10 +134,7 @@ Future<void> init() async {
 
   // Repositories
   sl.registerLazySingleton<ReportRepository>(
-        () => ReportRepositoryImpl(
-      dataSource: sl(),
-      networkInfo: sl(),
-    ),
+    () => ReportRepositoryImpl(dataSource: sl(), networkInfo: sl()),
   );
 
   // Use Cases
@@ -163,12 +146,14 @@ Future<void> init() async {
   sl.registerLazySingleton(() => ExportReportsUseCase(sl()));
 
   // Cubits
-  sl.registerFactory(() => ReportCubit(
-    getDailyReportsUseCase: sl(),
-    getWeeklyReportsUseCase: sl(),
-    getMonthlyReportsUseCase: sl(),
-    getYearlyReportsUseCase: sl(),
-    getReportSummaryUseCase: sl(),
-    exportReportsUseCase: sl(),
-  ));
+  sl.registerFactory(
+    () => ReportCubit(
+      getDailyReportsUseCase: sl(),
+      getWeeklyReportsUseCase: sl(),
+      getMonthlyReportsUseCase: sl(),
+      getYearlyReportsUseCase: sl(),
+      getReportSummaryUseCase: sl(),
+      exportReportsUseCase: sl(),
+    ),
+  );
 }

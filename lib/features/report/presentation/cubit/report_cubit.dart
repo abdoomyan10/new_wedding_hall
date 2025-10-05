@@ -2,8 +2,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wedding_hall/core/error/failure.dart';
-import 'package:wedding_hall/core/usecase/usecase.dart';
+import 'package:new_wedding_hall/core/error/failure.dart';
+import 'package:new_wedding_hall/core/usecase/usecase.dart';
 
 import '../../domain/entities/report_entity.dart';
 import '../../domain/entities/report_summary_entity.dart';
@@ -36,25 +36,27 @@ class ReportCubit extends Cubit<ReportState> {
   Future<void> loadDailyReports() async {
     emit(const ReportLoading());
 
-    final result = await getDailyReportsUseCase(NoParams() as  NoParams);
+    final result = await getDailyReportsUseCase(NoParams() as NoParams);
 
     result.fold(
-          (failure) {
+      (failure) {
         emit(ReportError(_mapFailureToMessage(failure)));
       },
-          (reports) async {
+      (reports) async {
         final summaryResult = await getReportSummaryUseCase('daily');
 
         summaryResult.fold(
-              (summaryFailure) {
+          (summaryFailure) {
             emit(ReportError(_mapFailureToMessage(summaryFailure)));
           },
-              (summary) {
-            emit(ReportLoaded(
-              reports: reports,
-              summary: summary,
-              selectedPeriod: 'daily',
-            ));
+          (summary) {
+            emit(
+              ReportLoaded(
+                reports: reports,
+                summary: summary,
+                selectedPeriod: 'daily',
+              ),
+            );
           },
         );
       },
@@ -68,22 +70,24 @@ class ReportCubit extends Cubit<ReportState> {
     final result = await getWeeklyReportsUseCase(DateTime(2023, 10, 1));
 
     result.fold(
-          (failure) {
+      (failure) {
         emit(ReportError(_mapFailureToMessage(failure)));
       },
-          (reports) async {
+      (reports) async {
         final summaryResult = await getReportSummaryUseCase('weekly');
 
         summaryResult.fold(
-              (summaryFailure) {
+          (summaryFailure) {
             emit(ReportError(_mapFailureToMessage(summaryFailure)));
           },
-              (summary) {
-            emit(ReportLoaded(
-              reports: reports,
-              summary: summary,
-              selectedPeriod: 'weekly',
-            ));
+          (summary) {
+            emit(
+              ReportLoaded(
+                reports: reports,
+                summary: summary,
+                selectedPeriod: 'weekly',
+              ),
+            );
           },
         );
       },
@@ -97,22 +101,24 @@ class ReportCubit extends Cubit<ReportState> {
     final result = await getMonthlyReportsUseCase(DateTime(2023, 10, 1));
 
     result.fold(
-          (failure) {
+      (failure) {
         emit(ReportError(_mapFailureToMessage(failure)));
       },
-          (reports) async {
+      (reports) async {
         final summaryResult = await getReportSummaryUseCase('monthly');
 
         summaryResult.fold(
-              (summaryFailure) {
+          (summaryFailure) {
             emit(ReportError(_mapFailureToMessage(summaryFailure)));
           },
-              (summary) {
-            emit(ReportLoaded(
-              reports: reports,
-              summary: summary,
-              selectedPeriod: 'monthly',
-            ));
+          (summary) {
+            emit(
+              ReportLoaded(
+                reports: reports,
+                summary: summary,
+                selectedPeriod: 'monthly',
+              ),
+            );
           },
         );
       },
@@ -126,22 +132,24 @@ class ReportCubit extends Cubit<ReportState> {
     final result = await getYearlyReportsUseCase(DateTime(2023, 10, 1));
 
     result.fold(
-          (failure) {
+      (failure) {
         emit(ReportError(_mapFailureToMessage(failure)));
       },
-          (reports) async {
+      (reports) async {
         final summaryResult = await getReportSummaryUseCase('yearly');
 
         summaryResult.fold(
-              (summaryFailure) {
+          (summaryFailure) {
             emit(ReportError(_mapFailureToMessage(summaryFailure)));
           },
-              (summary) {
-            emit(ReportLoaded(
-              reports: reports,
-              summary: summary,
-              selectedPeriod: 'yearly',
-            ));
+          (summary) {
+            emit(
+              ReportLoaded(
+                reports: reports,
+                summary: summary,
+                selectedPeriod: 'yearly',
+              ),
+            );
           },
         );
       },
@@ -153,17 +161,21 @@ class ReportCubit extends Cubit<ReportState> {
     final result = await getReportSummaryUseCase(period);
 
     result.fold(
-          (failure) {
-        _showExportError('فشل في تحميل الملخص: ${_mapFailureToMessage(failure)}');
+      (failure) {
+        _showExportError(
+          'فشل في تحميل الملخص: ${_mapFailureToMessage(failure)}',
+        );
       },
-          (summary) {
+      (summary) {
         if (state is ReportLoaded) {
           final currentState = state as ReportLoaded;
-          emit(ReportLoaded(
-            reports: currentState.reports,
-            summary: summary,
-            selectedPeriod: currentState.selectedPeriod,
-          ));
+          emit(
+            ReportLoaded(
+              reports: currentState.reports,
+              summary: summary,
+              selectedPeriod: currentState.selectedPeriod,
+            ),
+          );
         }
       },
     );
@@ -193,10 +205,10 @@ class ReportCubit extends Cubit<ReportState> {
       );
 
       result.fold(
-            (failure) {
+        (failure) {
           _showExportError(_mapFailureToMessage(failure));
         },
-            (filePath) {
+        (filePath) {
           _showExportSuccess('تم التصدير بنجاح كـ PDF: $filePath');
         },
       );
@@ -229,10 +241,10 @@ class ReportCubit extends Cubit<ReportState> {
       );
 
       result.fold(
-            (failure) {
+        (failure) {
           _showExportError(_mapFailureToMessage(failure));
         },
-            (filePath) {
+        (filePath) {
           _showExportSuccess('تم التصدير بنجاح كـ Excel: $filePath');
         },
       );
@@ -265,10 +277,10 @@ class ReportCubit extends Cubit<ReportState> {
       );
 
       result.fold(
-            (failure) {
+        (failure) {
           _showExportError(_mapFailureToMessage(failure));
         },
-            (filePath) {
+        (filePath) {
           final formatName = format == ExportFormat.pdf ? 'PDF' : 'Excel';
           _showExportSuccess('تم التصدير بنجاح كـ $formatName: $filePath');
         },
@@ -289,11 +301,13 @@ class ReportCubit extends Cubit<ReportState> {
 
     final newSummary = _calculateSummary(updatedReports);
 
-    emit(ReportLoaded(
-      reports: updatedReports,
-      summary: newSummary,
-      selectedPeriod: currentState.selectedPeriod,
-    ));
+    emit(
+      ReportLoaded(
+        reports: updatedReports,
+        summary: newSummary,
+        selectedPeriod: currentState.selectedPeriod,
+      ),
+    );
   }
 
   // إضافة تقرير جديد
@@ -304,11 +318,13 @@ class ReportCubit extends Cubit<ReportState> {
     final updatedReports = [...currentState.reports, newReport];
     final newSummary = _calculateSummary(updatedReports);
 
-    emit(ReportLoaded(
-      reports: updatedReports,
-      summary: newSummary,
-      selectedPeriod: currentState.selectedPeriod,
-    ));
+    emit(
+      ReportLoaded(
+        reports: updatedReports,
+        summary: newSummary,
+        selectedPeriod: currentState.selectedPeriod,
+      ),
+    );
   }
 
   // حذف تقرير
@@ -316,14 +332,18 @@ class ReportCubit extends Cubit<ReportState> {
     if (state is! ReportLoaded) return;
 
     final currentState = state as ReportLoaded;
-    final updatedReports = currentState.reports.where((report) => report.id != reportId).toList();
+    final updatedReports = currentState.reports
+        .where((report) => report.id != reportId)
+        .toList();
     final newSummary = _calculateSummary(updatedReports);
 
-    emit(ReportLoaded(
-      reports: updatedReports,
-      summary: newSummary,
-      selectedPeriod: currentState.selectedPeriod,
-    ));
+    emit(
+      ReportLoaded(
+        reports: updatedReports,
+        summary: newSummary,
+        selectedPeriod: currentState.selectedPeriod,
+      ),
+    );
   }
 
   // حساب الملخص الإجمالي من التقارير
@@ -353,7 +373,9 @@ class ReportCubit extends Cubit<ReportState> {
       totalEvents += report.eventsCount;
     }
 
-    double profitMargin = totalRevenue > 0 ? (totalNetProfit / totalRevenue) * 100 : 0;
+    double profitMargin = totalRevenue > 0
+        ? (totalNetProfit / totalRevenue) * 100
+        : 0;
 
     return ReportSummaryEntity(
       totalRevenue: totalRevenue,

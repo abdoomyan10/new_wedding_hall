@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:wedding_hall/core/error/failure.dart';
-import 'package:wedding_hall/core/usecase/usecase.dart';
+import 'package:new_wedding_hall/core/error/failure.dart';
+import 'package:new_wedding_hall/core/usecase/usecase.dart';
+
 import '../entities/payment_entity.dart';
 import '../repositories/payment_repository.dart';
 
