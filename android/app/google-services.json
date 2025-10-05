@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "246419270175",
+    "project_id": "new-wedding-hall",
+    "storage_bucket": "new-wedding-hall.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:246419270175:android:42fb5efff09a3db30c832a",
+        "android_client_info": {
+          "package_name": "com.example.new_wedding_hall"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCKm_wjU3R-1AkQjPYO1PXHi4R2ZJOQnyQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
