@@ -1,7 +1,8 @@
 // features/reports/data/repositories/report_repository_impl.dart
 import 'package:dartz/dartz.dart';
-import 'package:wedding_hall/core/error/failure.dart';
-import 'package:wedding_hall/core/network/network_info.dart';
+import 'package:new_wedding_hall/core/error/failure.dart';
+import 'package:new_wedding_hall/core/network/network_info.dart';
+
 import '../../domain/entities/report_entity.dart';
 import '../../domain/entities/report_summary_entity.dart';
 import '../../domain/repositories/report_repository.dart';
@@ -12,10 +13,7 @@ class ReportRepositoryImpl implements ReportRepository {
   final ReportDataSource dataSource;
   final NetworkInfo networkInfo;
 
-  ReportRepositoryImpl({
-    required this.dataSource,
-    required this.networkInfo,
-  });
+  ReportRepositoryImpl({required this.dataSource, required this.networkInfo});
 
   // ✅ إضافة تطبيق دالة getYearlyReports
   @override
@@ -59,7 +57,9 @@ class ReportRepositoryImpl implements ReportRepository {
   }
 
   @override
-  Future<Either<Failure, ReportSummaryEntity>> getReportSummary(String period) async {
+  Future<Either<Failure, ReportSummaryEntity>> getReportSummary(
+    String period,
+  ) async {
     try {
       final summary = await dataSource.getReportSummary(period);
       return Right(summary);

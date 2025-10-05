@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wedding_hall/features/expenses/presentation/pages/expenses_page.dart';
-import 'package:wedding_hall/features/payments/presentation/pages/payments_page.dart';
-import 'package:wedding_hall/features/report/presentation/pages/reports.dart';
+import 'package:new_wedding_hall/features/expenses/presentation/pages/expenses_page.dart';
+import 'package:new_wedding_hall/features/payments/presentation/pages/payments_page.dart';
+import 'package:new_wedding_hall/features/report/presentation/pages/reports.dart';
+
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/payments/presentation/widgets/Add_Payment_dialog.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
@@ -33,7 +34,7 @@ class _MainPageContent extends StatelessWidget {
             index: currentIndex,
             children: const [
               HomePage(),
-             ReportsPage(),
+              ReportsPage(),
               PaymentsPage(),
               ExpensesPage(),
               SettingsPage(),

@@ -1,9 +1,9 @@
 // features/expenses/presentation/cubit/expense_events.dart
 
+import 'package:new_wedding_hall/features/expenses/domain/entities/expense_entity.dart';
 
 import 'expense_cubit.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:wedding_hall/features/expenses/domain/entities/expense_entity.dart';
 
 @immutable
 abstract class ExpenseEvent {}

@@ -1,7 +1,6 @@
 // features/reports/data/models/report_summary_model.dart
-import 'package:wedding_hall/features/report/domain/entities/report_summary_entity.dart';
 
-
+import 'package:new_wedding_hall/features/report/domain/entities/report_summary_entity.dart';
 
 class ReportSummaryModel extends ReportSummaryEntity {
   const ReportSummaryModel({
@@ -12,13 +11,13 @@ class ReportSummaryModel extends ReportSummaryEntity {
     required int totalEvents,
     required double profitMargin,
   }) : super(
-    totalRevenue: totalRevenue,
-    totalExpenses: totalExpenses,
-    netProfit: netProfit,
-    totalPayments: totalPayments,
-    totalEvents: totalEvents,
-    profitMargin: profitMargin,
-  );
+         totalRevenue: totalRevenue,
+         totalExpenses: totalExpenses,
+         netProfit: netProfit,
+         totalPayments: totalPayments,
+         totalEvents: totalEvents,
+         profitMargin: profitMargin,
+       );
 
   factory ReportSummaryModel.fromJson(Map<String, dynamic> json) {
     return ReportSummaryModel(
@@ -89,11 +88,11 @@ class ReportSummaryModel extends ReportSummaryEntity {
   @override
   int get hashCode {
     return totalRevenue.hashCode ^
-    totalExpenses.hashCode ^
-    netProfit.hashCode ^
-    totalPayments.hashCode ^
-    totalEvents.hashCode ^
-    profitMargin.hashCode;
+        totalExpenses.hashCode ^
+        netProfit.hashCode ^
+        totalPayments.hashCode ^
+        totalEvents.hashCode ^
+        profitMargin.hashCode;
   }
 
   @override

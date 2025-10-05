@@ -1,9 +1,9 @@
 // features/home/domain/usecases/search_use_case.dart
 import 'package:dartz/dartz.dart';
-import 'package:wedding_hall/core/error/failure.dart';
-import 'package:wedding_hall/core/usecase/usecase.dart';
-import 'package:wedding_hall/features/home/domain/entities/search_entity.dart';
-import 'package:wedding_hall/features/home/domain/repositories/home_repository.dart';
+import 'package:new_wedding_hall/core/error/failure.dart';
+import 'package:new_wedding_hall/core/usecase/usecase.dart';
+import 'package:new_wedding_hall/features/home/domain/entities/search_entity.dart';
+import 'package:new_wedding_hall/features/home/domain/repositories/home_repository.dart';
 
 class SearchUseCase implements UseCase<SearchEntity, String> {
   final HomeRepository repository;

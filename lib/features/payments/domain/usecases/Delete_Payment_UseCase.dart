@@ -1,8 +1,8 @@
 // features/payments/domain/usecases/delete_payment_usecase.dart
 import 'package:dartz/dartz.dart';
-import 'package:wedding_hall/core/error/failure.dart';
-import 'package:wedding_hall/core/usecase/usecase.dart';
-import 'package:wedding_hall/features/payments/domain/repositories/payment_repository.dart';
+import 'package:new_wedding_hall/core/error/failure.dart';
+import 'package:new_wedding_hall/core/usecase/usecase.dart';
+import 'package:new_wedding_hall/features/payments/domain/repositories/payment_repository.dart';
 
 class DeletePaymentUseCase implements UseCase<void, String> {
   final PaymentRepository repository;

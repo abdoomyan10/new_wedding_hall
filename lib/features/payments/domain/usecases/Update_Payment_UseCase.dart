@@ -1,8 +1,8 @@
 // features/payments/domain/usecases/update_payment_usecase.dart
 import 'package:dartz/dartz.dart';
-import 'package:wedding_hall/core/error/failure.dart';
-import 'package:wedding_hall/features/payments/domain/entities/payment_entity.dart';
-import 'package:wedding_hall/features/payments/domain/repositories/payment_repository.dart';
+import 'package:new_wedding_hall/core/error/failure.dart';
+import 'package:new_wedding_hall/features/payments/domain/entities/payment_entity.dart';
+import 'package:new_wedding_hall/features/payments/domain/repositories/payment_repository.dart';
 
 class UpdatePaymentUseCase {
   final PaymentRepository repository;
