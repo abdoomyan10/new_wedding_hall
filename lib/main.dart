@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'features/home/presentation/cubit/home_cubit.dart';
+import 'features/payments/domain/repositories/payment_repository.dart';
+import 'features/payments/domain/usecases/Update_Payment_UseCase.dart';
 import 'features/payments/presentation/cubit/payment_cubit.dart';
-import 'features/expenses/presentation/cubit/expense_cubit.dart'; // ✅ إضافة ExpenseCubit
+import 'features/expenses/presentation/cubit/expense_cubit.dart';
 import 'injection_container.dart' as di;
 import 'firebase_options.dart';
 import 'presentation/pages/main_page.dart';
@@ -12,19 +14,40 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    // 🔥 تهيئة Firebase
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // 🧠 تهيئة dependency injection
+    print('🧠 Initializing DI...');
     await di.init();
+    print('✅ DI initialized');
 
-    // 🚀 تشغيل التطبيق
+    // اختبار جميع ال dependencies
+    testDependencies();
+
     runApp(const MainApp());
   } catch (e) {
-    print('Error in main: $e');
+    print('❌ Error in main: $e');
     runApp(ErrorApp(error: e.toString()));
+  }
+}
+
+void testDependencies() {
+  print('🔍 Testing dependencies...');
+
+  final tests = [
+    {'name': 'UpdatePaymentUseCase', 'test': () => di.sl<UpdatePaymentUseCase>()},
+    {'name': 'PaymentRepository', 'test': () => di.sl<PaymentRepository>()},
+    {'name': 'PaymentCubit', 'test': () => di.sl<PaymentCubit>()},
+  ];
+
+  for (var test in tests) {
+    try {
+      test['test']!;
+      print('✅ ${test['name']} - SUCCESS');
+    } catch (e) {
+      print('❌ ${test['name']} - FAILED: $e');
+    }
   }
 }
 
@@ -41,7 +64,7 @@ class MainApp extends StatelessWidget {
         BlocProvider<PaymentCubit>(
           create: (context) => di.sl<PaymentCubit>()..loadPayments(),
         ),
-        BlocProvider<ExpenseCubit>( // ✅ إضافة ExpenseCubit
+        BlocProvider<ExpenseCubit>(
           create: (context) => di.sl<ExpenseCubit>(),
         ),
       ],
@@ -55,16 +78,13 @@ class MainApp extends StatelessWidget {
 
 class ErrorApp extends StatelessWidget {
   final String error;
-
   const ErrorApp({super.key, required this.error});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: Center(
-          child: Text('Error: $error'),
-        ),
+        body: Center(child: Text('Error: $error')),
       ),
     );
   }
