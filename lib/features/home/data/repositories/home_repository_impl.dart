@@ -25,10 +25,14 @@ class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
-  Future<Either<Failure, void>> refreshHomeData() async {
+  Future<Either<Failure, HomeEntity>> refreshHomeData() async { // تغيير من void إلى HomeEntity
     try {
-      await dataSource.refreshHomeData();
-      return const Right(null);
+      // إما أن يكون لديك method منفصل للتحديث
+      // final refreshedData = await dataSource.refreshHomeData();
+
+      // أو ببساطة إعادة جلب البيانات (إذا كان هذا يكفي للتحديث)
+      final refreshedData = await dataSource.getHomeData();
+      return Right(refreshedData);
     } on Exception {
       return Left(CacheFailure());
     }

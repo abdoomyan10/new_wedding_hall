@@ -7,5 +7,6 @@ import 'package:new_wedding_hall/features/home/domain/entities/search_entity.dar
 abstract class HomeRepository {
   Future<Either<Failure, HomeEntity>> getHomeData();
   Future<Either<Failure, void>> refreshHomeData();
+
   Future<Either<Failure, SearchEntity>> search(String query);
 }

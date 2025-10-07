@@ -1,4 +1,4 @@
-// features/home/presentation/widgets/quick_actions_grid.dart
+
 import 'package:flutter/material.dart';
 
 class QuickActionsGrid extends StatelessWidget {
@@ -25,42 +25,42 @@ class QuickActionsGrid extends StatelessWidget {
       mainAxisSpacing: 12,
       childAspectRatio: 1.5,
       children: [
-        ActionCard(
+        ActionButton(
           icon: Icons.add,
           title: 'إضافة حفلة',
           color: Colors.green,
-          onTap: onAddEvent,
+          onTap: (){},
         ),
-        ActionCard(
+        ActionButton(
           icon: Icons.people,
           title: 'العملاء',
           color: Colors.blue,
-          onTap: onClients,
+          onTap: (){},
         ),
-        ActionCard(
+        ActionButton(
           icon: Icons.attach_money,
           title: 'المدفوعات',
           color: Colors.orange,
-          onTap: onPayments,
+          onTap: (){},
         ),
-        ActionCard(
+        ActionButton(
           icon: Icons.bar_chart,
           title: 'التقارير',
           color: Colors.purple,
-          onTap: onReports,
+          onTap: (){},
         ),
       ],
     );
   }
 }
 
-class ActionCard extends StatelessWidget {
+class ActionButton extends StatelessWidget {
   final IconData icon;
   final String title;
   final Color color;
   final VoidCallback? onTap;
 
-  const ActionCard({
+  const ActionButton({
     super.key,
     required this.icon,
     required this.title,
@@ -73,6 +73,7 @@ class ActionCard extends StatelessWidget {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white, // الخلفية بيضاء كما في الأصل
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
@@ -84,10 +85,10 @@ class ActionCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withOpacity(0.1), // نفس الشفافية والألوان
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: color, size: 24),
+                child: Icon(icon, color: color, size: 24), // نفس لون الأيقونة
               ),
               const SizedBox(height: 8),
               Text(
@@ -96,6 +97,7 @@ class ActionCard extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
+                  color: Colors.black, // لون النص أسود
                 ),
               ),
             ],
