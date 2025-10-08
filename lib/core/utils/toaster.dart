@@ -1,5 +1,7 @@
-/*import 'package:flutter/material.dart';
-import 'package:wedding_hall/core/extensions/context_extention.dart';
+import 'package:bot_toast/bot_toast.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:new_wedding_hall/core/extensions/context_extention.dart';
 
 class Toaster {
   Toaster._();
@@ -76,4 +78,4 @@ class CustomLoadingWidget extends StatelessWidget {
       child: CircularProgressIndicator(),
     );
   }
-}*/
+}

@@ -12,15 +12,15 @@ class HomeModel extends HomeEntity {
     required double totalRevenue,
     required int pendingPayments,
   }) : super(
-    unreadNotificationsCount: unreadNotificationsCount,
-    userName: userName,
-    userImageUrl: userImageUrl,
-    lastUpdate: lastUpdate,
-    totalEvents: totalEvents,
-    upcomingEvents: upcomingEvents,
-    totalRevenue: totalRevenue,
-    pendingPayments: pendingPayments,
-  );
+         unreadNotificationsCount: unreadNotificationsCount,
+         userName: userName,
+         userImageUrl: userImageUrl,
+         lastUpdate: lastUpdate,
+         totalEvents: totalEvents,
+         upcomingEvents: upcomingEvents,
+         totalRevenue: totalRevenue,
+         pendingPayments: pendingPayments,
+       );
 
   factory HomeModel.fromJson(Map<String, dynamic> json) {
     return HomeModel(

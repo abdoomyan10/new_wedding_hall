@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/services/dependencies.dart';
 import '../../../../injection_container.dart';
 import '../cubit/home_cubit.dart';
 import '../widgets/home_app_bar.dart';
@@ -13,11 +14,8 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<HomeCubit>()..loadHomeData(),
-      child: Scaffold(
-        appBar: const HomeAppBar(),
-        body: const _HomeBody(),
-      ),
+      create: (context) => getIt<HomeCubit>()..loadHomeData(),
+      child: Scaffold(appBar: const HomeAppBar(), body: const _HomeBody()),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'core/services/dependencies.dart';
 import 'features/home/presentation/cubit/home_cubit.dart';
 import 'features/payments/domain/repositories/payment_repository.dart';
 import 'features/payments/domain/usecases/Update_Payment_UseCase.dart';
@@ -8,7 +9,8 @@ import 'features/payments/presentation/cubit/payment_cubit.dart';
 import 'features/expenses/presentation/cubit/expense_cubit.dart';
 import 'injection_container.dart' as di;
 import 'firebase_options.dart';
-import 'presentation/pages/main_page.dart';
+// main_page.dart is not referenced here because app starts at splash screen
+import 'features/auth/presentation/pages/splashscreen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +22,7 @@ Future<void> main() async {
 
     print('🧠 Initializing DI...');
     await di.init();
+    configureDependencies();
     print('✅ DI initialized');
 
     // اختبار جميع ال dependencies
@@ -36,14 +39,18 @@ void testDependencies() {
   print('🔍 Testing dependencies...');
 
   final tests = [
-    {'name': 'UpdatePaymentUseCase', 'test': () => di.sl<UpdatePaymentUseCase>()},
-    {'name': 'PaymentRepository', 'test': () => di.sl<PaymentRepository>()},
-    {'name': 'PaymentCubit', 'test': () => di.sl<PaymentCubit>()},
+    {
+      'name': 'UpdatePaymentUseCase',
+      'test': () => getIt<UpdatePaymentUseCase>(),
+    },
+    {'name': 'PaymentRepository', 'test': () => getIt<PaymentRepository>()},
+    {'name': 'PaymentCubit', 'test': () => getIt<PaymentCubit>()},
   ];
 
   for (var test in tests) {
     try {
-      test['test']!;
+      // actually invoke the closure to retrieve the dependency
+      (test['test'] as dynamic)();
       print('✅ ${test['name']} - SUCCESS');
     } catch (e) {
       print('❌ ${test['name']} - FAILED: $e');
@@ -59,18 +66,16 @@ class MainApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<HomeCubit>(
-          create: (context) => di.sl<HomeCubit>()..loadHomeData(),
+          create: (context) => getIt<HomeCubit>()..loadHomeData(),
         ),
         BlocProvider<PaymentCubit>(
-          create: (context) => di.sl<PaymentCubit>()..loadPayments(),
+          create: (context) => getIt<PaymentCubit>()..loadPayments(),
         ),
-        BlocProvider<ExpenseCubit>(
-          create: (context) => di.sl<ExpenseCubit>(),
-        ),
+        BlocProvider<ExpenseCubit>(create: (context) => getIt<ExpenseCubit>()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: const MainPage(),
+        home: const SplashScreen(),
       ),
     );
   }
@@ -83,9 +88,7 @@ class ErrorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        body: Center(child: Text('Error: $error')),
-      ),
+      home: Scaffold(body: Center(child: Text('Error: $error'))),
     );
   }
 }
