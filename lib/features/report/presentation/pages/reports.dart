@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/dependencies.dart';
 import '../../../../injection_container.dart';
 import '../cubit/report_cubit.dart';
 import '../widgets/export_reports_dialog.dart';
@@ -16,7 +17,7 @@ class ReportsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<ReportCubit>()..loadDailyReports(),
+      create: (context) => getIt<ReportCubit>()..loadDailyReports(),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('التقارير'),

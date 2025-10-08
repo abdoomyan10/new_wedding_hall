@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:new_wedding_hall/core/network/network_info.dart';
+import 'package:new_wedding_hall/core/services/dependencies.dart';
 import 'package:new_wedding_hall/features/expenses/data/datasources/expense_data_source.dart';
 import 'package:new_wedding_hall/features/expenses/data/repositories/expense_repository_impl.dart';
 import 'package:new_wedding_hall/features/expenses/domain/usecases/add_expense_usecase.dart';
@@ -39,96 +40,134 @@ import 'features/report/domain/usecases/get_weekly_reports_usecase.dart';
 import 'features/report/domain/usecases/get_yearly_reports_usecase.dart';
 import 'features/report/presentation/cubit/report_cubit.dart';
 
-final GetIt sl = GetIt.instance;
-
 Future<void> init() async {
   // إعادة تعيين GetIt
-  await sl.reset();
+  await getIt.reset();
 
   // ========== CORE DEPENDENCIES ==========
-  sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl());
+  getIt.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl());
 
   // ========== HOME FEATURE DEPENDENCIES ==========
-  sl.registerLazySingleton<HomeDataSource>(() => HomeLocalDataSource());
-  sl.registerLazySingleton<HomeRepository>(
-        () => HomeRepositoryImpl(dataSource: sl(), networkInfo: sl()),
+  getIt.registerLazySingleton<HomeDataSource>(() => HomeLocalDataSource());
+  getIt.registerLazySingleton<HomeRepository>(
+    () => HomeRepositoryImpl(dataSource: getIt(), networkInfo: getIt()),
   );
 
   // Home Use Cases - التسجيل الصحيح
-  sl.registerLazySingleton<GetHomeDataUseCase>(() => GetHomeDataUseCase(sl()));
-  sl.registerLazySingleton<SearchUseCase>(() => SearchUseCase(sl()));
-  sl.registerLazySingleton<RefreshHomeDataUseCase>(() => RefreshHomeDataUseCase(sl()));
+  getIt.registerLazySingleton<GetHomeDataUseCase>(
+    () => GetHomeDataUseCase(getIt()),
+  );
+  getIt.registerLazySingleton<SearchUseCase>(() => SearchUseCase(getIt()));
+  getIt.registerLazySingleton<RefreshHomeDataUseCase>(
+    () => RefreshHomeDataUseCase(getIt()),
+  );
   // Home Cubit - بدون RefreshHomeDataUseCase
-  sl.registerFactory<HomeCubit>(
-        () => HomeCubit(
-          refreshHomeDataUseCase: sl(),
-      getHomeDataUseCase: sl(),
-      searchUseCase: sl(),
+  getIt.registerFactory<HomeCubit>(
+    () => HomeCubit(
+      refreshHomeDataUseCase: getIt(),
+      getHomeDataUseCase: getIt(),
+      searchUseCase: getIt(),
     ),
   );
 
   // ... باقي الكود بدون تغيير
   // ========== PAYMENTS FEATURE DEPENDENCIES ==========
-  sl.registerLazySingleton<PaymentDataSource>(() => PaymentLocalDataSource());
-  sl.registerLazySingleton<PaymentRepository>(
-        () => PaymentRepositoryImpl(dataSource: sl(), networkInfo: sl()),
+  getIt.registerLazySingleton<PaymentDataSource>(
+    () => PaymentLocalDataSource(),
+  );
+  getIt.registerLazySingleton<PaymentRepository>(
+    () => PaymentRepositoryImpl(dataSource: getIt(), networkInfo: getIt()),
   );
 
   // Use Cases - تسجيل صريح مع أنواع محددة
-  sl.registerLazySingleton<GetPaymentsUseCase>(() => GetPaymentsUseCase(sl<PaymentRepository>()));
-  sl.registerLazySingleton<AddPaymentUseCase>(() => AddPaymentUseCase(sl<PaymentRepository>()));
-  sl.registerLazySingleton<UpdatePaymentUseCase>(() => UpdatePaymentUseCase(sl<PaymentRepository>()));
-  sl.registerLazySingleton<DeletePaymentUseCase>(() => DeletePaymentUseCase(sl<PaymentRepository>()));
-  sl.registerLazySingleton<GetPaymentStatsUseCase>(() => GetPaymentStatsUseCase(sl<PaymentRepository>()));
+  getIt.registerLazySingleton<GetPaymentsUseCase>(
+    () => GetPaymentsUseCase(getIt<PaymentRepository>()),
+  );
+  getIt.registerLazySingleton<AddPaymentUseCase>(
+    () => AddPaymentUseCase(getIt<PaymentRepository>()),
+  );
+  getIt.registerLazySingleton<UpdatePaymentUseCase>(
+    () => UpdatePaymentUseCase(getIt<PaymentRepository>()),
+  );
+  getIt.registerLazySingleton<DeletePaymentUseCase>(
+    () => DeletePaymentUseCase(getIt<PaymentRepository>()),
+  );
+  getIt.registerLazySingleton<GetPaymentStatsUseCase>(
+    () => GetPaymentStatsUseCase(getIt<PaymentRepository>()),
+  );
 
   // Cubits
-  sl.registerFactory<PaymentCubit>(
-        () => PaymentCubit(
-      getPaymentsUseCase: sl<GetPaymentsUseCase>(),
-      addPaymentUseCase: sl<AddPaymentUseCase>(),
-      updatePaymentUseCase: sl<UpdatePaymentUseCase>(),
-      deletePaymentUseCase: sl<DeletePaymentUseCase>(),
-      getPaymentStatsUseCase: sl<GetPaymentStatsUseCase>(),
+  getIt.registerFactory<PaymentCubit>(
+    () => PaymentCubit(
+      getPaymentsUseCase: getIt<GetPaymentsUseCase>(),
+      addPaymentUseCase: getIt<AddPaymentUseCase>(),
+      updatePaymentUseCase: getIt<UpdatePaymentUseCase>(),
+      deletePaymentUseCase: getIt<DeletePaymentUseCase>(),
+      getPaymentStatsUseCase: getIt<GetPaymentStatsUseCase>(),
     ),
   );
 
   // ========== EXPENSES FEATURE DEPENDENCIES ==========
-  sl.registerLazySingleton<ExpenseDataSource>(() => ExpenseLocalDataSource());
-  sl.registerLazySingleton<ExpenseRepository>(
-        () => ExpenseRepositoryImpl(dataSource: sl(), networkInfo: sl()),
+  getIt.registerLazySingleton<ExpenseDataSource>(
+    () => ExpenseLocalDataSource(),
   );
-  sl.registerLazySingleton<GetExpensesUseCase>(() => GetExpensesUseCase(sl<ExpenseRepository>()));
-  sl.registerLazySingleton<AddExpenseUseCase>(() => AddExpenseUseCase(sl<ExpenseRepository>()));
-  sl.registerLazySingleton<DeleteExpenseUseCase>(() => DeleteExpenseUseCase(sl<ExpenseRepository>()));
-  sl.registerLazySingleton<GetExpenseStatsUseCase>(() => GetExpenseStatsUseCase(sl<ExpenseRepository>()));
-  sl.registerFactory<ExpenseCubit>(
-        () => ExpenseCubit(
-      getExpensesUseCase: sl<GetExpensesUseCase>(),
-      addExpenseUseCase: sl<AddExpenseUseCase>(),
-      deleteExpenseUseCase: sl<DeleteExpenseUseCase>(),
-      getExpenseStatsUseCase: sl<GetExpenseStatsUseCase>(),
+  getIt.registerLazySingleton<ExpenseRepository>(
+    () => ExpenseRepositoryImpl(dataSource: getIt(), networkInfo: getIt()),
+  );
+  getIt.registerLazySingleton<GetExpensesUseCase>(
+    () => GetExpensesUseCase(getIt<ExpenseRepository>()),
+  );
+  getIt.registerLazySingleton<AddExpenseUseCase>(
+    () => AddExpenseUseCase(getIt<ExpenseRepository>()),
+  );
+  getIt.registerLazySingleton<DeleteExpenseUseCase>(
+    () => DeleteExpenseUseCase(getIt<ExpenseRepository>()),
+  );
+  getIt.registerLazySingleton<GetExpenseStatsUseCase>(
+    () => GetExpenseStatsUseCase(getIt<ExpenseRepository>()),
+  );
+  getIt.registerFactory<ExpenseCubit>(
+    () => ExpenseCubit(
+      getExpensesUseCase: getIt<GetExpensesUseCase>(),
+      addExpenseUseCase: getIt<AddExpenseUseCase>(),
+      deleteExpenseUseCase: getIt<DeleteExpenseUseCase>(),
+      getExpenseStatsUseCase: getIt<GetExpenseStatsUseCase>(),
     ),
   );
 
   // ========== REPORTS FEATURE DEPENDENCIES ==========
-  sl.registerLazySingleton<ReportDataSource>(() => ReportLocalDataSourceImpl());
-  sl.registerLazySingleton<ReportRepository>(
-        () => ReportRepositoryImpl(dataSource: sl(), networkInfo: sl()),
+  getIt.registerLazySingleton<ReportDataSource>(
+    () => ReportLocalDataSourceImpl(),
   );
-  sl.registerLazySingleton<GetDailyReportsUseCase>(() => GetDailyReportsUseCase(sl<ReportRepository>()));
-  sl.registerLazySingleton<GetWeeklyReportsUseCase>(() => GetWeeklyReportsUseCase(sl<ReportRepository>()));
-  sl.registerLazySingleton<GetMonthlyReportsUseCase>(() => GetMonthlyReportsUseCase(sl<ReportRepository>()));
-  sl.registerLazySingleton<GetYearlyReportsUseCase>(() => GetYearlyReportsUseCase(sl<ReportRepository>()));
-  sl.registerLazySingleton<GetReportSummaryUseCase>(() => GetReportSummaryUseCase(sl<ReportRepository>()));
-  sl.registerLazySingleton<ExportReportsUseCase>(() => ExportReportsUseCase(sl<ReportRepository>()));
-  sl.registerFactory<ReportCubit>(
-        () => ReportCubit(
-      getDailyReportsUseCase: sl<GetDailyReportsUseCase>(),
-      getWeeklyReportsUseCase: sl<GetWeeklyReportsUseCase>(),
-      getMonthlyReportsUseCase: sl<GetMonthlyReportsUseCase>(),
-      getYearlyReportsUseCase: sl<GetYearlyReportsUseCase>(),
-      getReportSummaryUseCase: sl<GetReportSummaryUseCase>(),
-      exportReportsUseCase: sl<ExportReportsUseCase>(),
+  getIt.registerLazySingleton<ReportRepository>(
+    () => ReportRepositoryImpl(dataSource: getIt(), networkInfo: getIt()),
+  );
+  getIt.registerLazySingleton<GetDailyReportsUseCase>(
+    () => GetDailyReportsUseCase(getIt<ReportRepository>()),
+  );
+  getIt.registerLazySingleton<GetWeeklyReportsUseCase>(
+    () => GetWeeklyReportsUseCase(getIt<ReportRepository>()),
+  );
+  getIt.registerLazySingleton<GetMonthlyReportsUseCase>(
+    () => GetMonthlyReportsUseCase(getIt<ReportRepository>()),
+  );
+  getIt.registerLazySingleton<GetYearlyReportsUseCase>(
+    () => GetYearlyReportsUseCase(getIt<ReportRepository>()),
+  );
+  getIt.registerLazySingleton<GetReportSummaryUseCase>(
+    () => GetReportSummaryUseCase(getIt<ReportRepository>()),
+  );
+  getIt.registerLazySingleton<ExportReportsUseCase>(
+    () => ExportReportsUseCase(getIt<ReportRepository>()),
+  );
+  getIt.registerFactory<ReportCubit>(
+    () => ReportCubit(
+      getDailyReportsUseCase: getIt<GetDailyReportsUseCase>(),
+      getWeeklyReportsUseCase: getIt<GetWeeklyReportsUseCase>(),
+      getMonthlyReportsUseCase: getIt<GetMonthlyReportsUseCase>(),
+      getYearlyReportsUseCase: getIt<GetYearlyReportsUseCase>(),
+      getReportSummaryUseCase: getIt<GetReportSummaryUseCase>(),
+      exportReportsUseCase: getIt<ExportReportsUseCase>(),
     ),
   );
 

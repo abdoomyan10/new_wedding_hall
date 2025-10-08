@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'new-wedding-hall.firebasestorage.app',
     measurementId: 'G-122ENPT6J6',
   );
+
 }
