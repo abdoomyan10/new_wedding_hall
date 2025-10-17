@@ -1,7 +1,8 @@
-// features/expenses/presentation/widgets/expense_stats_card.dart
+// features/expenses/presentation/widgets/expenses_stats_card.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import '../../domain/entities/expense_stats_entity.dart';
+import '../../domain/entities/profit_entity.dart';
 import '../cubit/expense_cubit.dart';
 import '../cubit/expense_state.dart';
 
@@ -12,112 +13,196 @@ class ExpenseStatsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ExpenseCubit, ExpenseState>(
       builder: (context, state) {
-        // حالة التحميل الأولي فقط
-        if (state is ExpenseLoading && state.expenses.isEmpty) {
-          return _buildLoadingStats();
+        if (state is! ExpenseLoaded) {
+          return const _LoadingStatsCard();
         }
 
-        // في جميع الحالات الأخرى، عرض البيانات المتاحة
-        final totalExpenses = state.expenses.fold(
-            0.0,
-                (sum, expense) => sum + expense.amount
+        final stats = state.filteredStats;
+        final profit = state.profit;
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          color: Colors.grey.shade50,
+          child: Column(
+            children: [
+              _buildStatsRow(stats, profit),
+              const SizedBox(height: 12),
+              if (profit != null) _buildProfitIndicator(profit),
+            ],
+          ),
         );
-
-        // TODO: استبدل بقيمة حقيقية من PaymentCubit
-        const totalRevenue = 15000.0;
-        final profit = totalRevenue - totalExpenses;
-
-        return _buildStatsContent(totalExpenses, totalRevenue, profit);
       },
     );
   }
 
-  Widget _buildStatsContent(double totalExpenses, double totalRevenue, double profit) {
-    final currencyFormat = NumberFormat.currency(
-      symbol: 'ر.س',
-      decimalDigits: 2,
+  Widget _buildStatsRow(ExpenseStatsEntity stats, ProfitEntity? profit) {
+    return Row(
+      children: [
+        _buildStatItem(
+          'إجمالي التكاليف',
+          '${stats.totalExpenses.toStringAsFixed(2)} ر.س',
+          Colors.red,
+          Icons.payments,
+        ),
+        const SizedBox(width: 12),
+        _buildStatItem(
+          'عدد التكاليف',
+          stats.expenseCount.toString(),
+          Colors.blue,
+          Icons.list,
+        ),
+        const SizedBox(width: 12),
+        _buildStatItem(
+          'متوسط التكلفة',
+          '${stats.averageExpense.toStringAsFixed(2)} ر.س',
+          Colors.orange,
+          Icons.trending_up,
+        ),
+      ],
     );
+  }
 
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // العنوان
-          const Text(
-            'ملخص المالية',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue,
+  Widget _buildStatItem(String title, String value, Color color, IconData icon) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
-          ),
-          const SizedBox(height: 16),
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-          // شبكة الإحصائيات
-          Row(
+  Widget _buildProfitIndicator(ProfitEntity profit) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: profit.isProfit ? Colors.green.shade50 : Colors.red.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: profit.isProfit ? Colors.green.shade200 : Colors.red.shade200,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // الإيرادات
-              Expanded(
-                child: _buildStatItem(
-                  'الإيرادات',
-                  currencyFormat.format(totalRevenue),
-                  Colors.green,
-                  Icons.trending_up,
+              Text(
+                profit.isProfit ? 'فائض' : 'عجز',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: profit.isProfit ? Colors.green : Colors.red,
                 ),
               ),
-              const SizedBox(width: 12),
-
-              // التكاليف
-              Expanded(
-                child: _buildStatItem(
-                  'التكاليف',
-                  currencyFormat.format(totalExpenses),
-                  Colors.red,
-                  Icons.trending_down,
+              const SizedBox(height: 4),
+              Text(
+                '${profit.profit.toStringAsFixed(2)} ر.س',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: profit.isProfit ? Colors.green : Colors.red,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          Icon(
+            profit.isProfit ? Icons.arrow_upward : Icons.arrow_downward,
+            color: profit.isProfit ? Colors.green : Colors.red,
+            size: 24,
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-          // الفائض
+class _LoadingStatsCard extends StatelessWidget {
+  const _LoadingStatsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: Colors.grey.shade50,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              _buildLoadingStatItem(),
+              const SizedBox(width: 12),
+              _buildLoadingStatItem(),
+              const SizedBox(width: 12),
+              _buildLoadingStatItem(),
+            ],
+          ),
+          const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: profit >= 0 ? Colors.green.shade50 : Colors.red.shade50,
+              color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: profit >= 0 ? Colors.green.shade200 : Colors.red.shade200,
-              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(
-                  profit >= 0 ? Icons.thumb_up : Icons.thumb_down,
-                  color: profit >= 0 ? Colors.green : Colors.red,
-                  size: 20,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 60,
+                      height: 16,
+                      child: ColoredBox(color: Colors.grey),
+                    ),
+                    SizedBox(height: 4),
+                    SizedBox(
+                      width: 80,
+                      height: 20,
+                      child: ColoredBox(color: Colors.grey),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'الفائض: ${currencyFormat.format(profit)}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: profit >= 0 ? Colors.green : Colors.red,
-                  ),
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: ColoredBox(color: Colors.grey),
                 ),
               ],
             ),
@@ -127,59 +212,35 @@ class ExpenseStatsCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String title, String value, Color color, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
+  Widget _buildLoadingStatItem() {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(
+              width: 24,
+              height: 24,
+              child: ColoredBox(color: Colors.grey),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: color,
+            const SizedBox(height: 8),
+            const SizedBox(
+              width: double.infinity,
+              height: 12,
+              child: ColoredBox(color: Colors.grey),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoadingStats() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: const Column(
-        children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 8),
-          Text('جاري تحميل الإحصائيات...'),
-        ],
+            const SizedBox(height: 4),
+            const SizedBox(
+              width: double.infinity,
+              height: 14,
+              child: ColoredBox(color: Colors.grey),
+            ),
+          ],
+        ),
       ),
     );
   }

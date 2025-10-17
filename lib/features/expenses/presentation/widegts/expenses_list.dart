@@ -1,9 +1,10 @@
-// features/expenses/presentation/widgets/expense_list.dart
+// features/expenses/presentation/widgets/expenses_list.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/expense_entity.dart';
 import '../cubit/expense_cubit.dart';
 import '../cubit/expense_state.dart';
+import 'expense_details_dialog.dart';
 import 'expense_item.dart';
 
 class ExpenseList extends StatelessWidget {
@@ -43,8 +44,9 @@ class ExpenseList extends StatelessWidget {
         final expense = expenses[index];
         return ExpenseItem(
           expense: expense,
-          onDelete: () => _showDeleteConfirmation(context, expense),
+          onDelete: () => _deleteExpense(context, expense),
           onTap: () => _showExpenseDetails(context, expense),
+          onGeneratePdf: () => _generateSingleExpensePdf(context, expense),
         );
       },
     );
@@ -135,75 +137,18 @@ class ExpenseList extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, ExpenseEntity expense) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تأكيد الحذف'),
-        content: Text('هل أنت متأكد من حذف تكلفة "${expense.description}"؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () {
-              context.read<ExpenseCubit>().deleteExpense(expense.id);
-              Navigator.pop(context);
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('حذف'),
-          ),
-        ],
-      ),
-    );
+  void _deleteExpense(BuildContext context, ExpenseEntity expense) {
+    context.read<ExpenseCubit>().deleteExpense(expense.id);
   }
 
   void _showExpenseDetails(BuildContext context, ExpenseEntity expense) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تفاصيل التكلفة'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDetailRow('الوصف:', expense.description),
-            _buildDetailRow('المبلغ:', '${expense.amount.toStringAsFixed(2)} ر.س'),
-            _buildDetailRow('العامل:', expense.workerName),
-            _buildDetailRow('الفئة:', expense.category),
-            _buildDetailRow('التاريخ:', _formatDate(expense.date)),
-            _buildDetailRow('تاريخ الإضافة:', _formatDate(expense.createdAt)),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إغلاق'),
-          ),
-        ],
-      ),
+      builder: (context) => ExpenseDetailsDialog(expense: expense),
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(width: 8),
-          Expanded(child: Text(value)),
-        ],
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  void _generateSingleExpensePdf(BuildContext context, ExpenseEntity expense) {
+    context.read<ExpenseCubit>().generateSingleExpensePdf(expense);
   }
 }

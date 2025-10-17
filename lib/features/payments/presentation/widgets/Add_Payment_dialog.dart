@@ -50,7 +50,7 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
     final payment = widget.paymentToEdit!;
     _clientNameController.text = payment.clientName;
     _eventNameController.text = payment.eventName;
-    _amountController.text = payment.amount.toString();
+    _amountController.text = payment.amount.toStringAsFixed(0);
     _selectedPaymentMethod = payment.paymentMethod;
     _selectedStatus = payment.status;
     _selectedDate = payment.paymentDate;
@@ -58,169 +58,239 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
   }
 
   @override
+  void dispose() {
+    _clientNameController.dispose();
+    _eventNameController.dispose();
+    _amountController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isEditing = widget.paymentToEdit != null;
 
-    return AlertDialog(
-      title: Text(isEditing ? 'تعديل الدفعة' : 'إضافة دفعة جديدة'),
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
+    return Dialog(
+      insetPadding: const EdgeInsets.all(20),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-                controller: _clientNameController,
-                decoration: const InputDecoration(
-                  labelText: 'اسم العميل',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'يرجى إدخال اسم العميل';
-                  }
-                  return null;
-                },
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    isEditing ? 'تعديل الدفعة' : 'إضافة دفعة جديدة',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _eventNameController,
-                decoration: const InputDecoration(
-                  labelText: 'اسم الحفلة',
-                  border: OutlineInputBorder(),
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _clientNameController,
+                      decoration: const InputDecoration(
+                        labelText: 'اسم العميل',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'يرجى إدخال اسم العميل';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _eventNameController,
+                      decoration: const InputDecoration(
+                        labelText: 'اسم الحفلة',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'يرجى إدخال اسم الحفلة';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _amountController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'المبلغ (ر.س)',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'يرجى إدخال المبلغ';
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'يرجى إدخال مبلغ صحيح';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _selectedPaymentMethod,
+                      items: _paymentMethods.map((method) {
+                        return DropdownMenuItem<String>(
+                          value: method['value'] as String,
+                          child: Text(method['text'] as String),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _selectedPaymentMethod = value;
+                          });
+                        }
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'طريقة الدفع',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _selectedStatus,
+                      items: _statuses.map((status) {
+                        return DropdownMenuItem<String>(
+                          value: status['value'] as String,
+                          child: Text(status['text'] as String),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _selectedStatus = value;
+                          });
+                        }
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'حالة الدفع',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    InkWell(
+                      onTap: () async {
+                        final selectedDate = await showDatePicker(
+                          context: context,
+                          initialDate: _selectedDate,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2030),
+                        );
+                        if (selectedDate != null) {
+                          setState(() {
+                            _selectedDate = selectedDate;
+                          });
+                        }
+                      },
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'تاريخ الدفع',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(DateFormat('yyyy-MM-dd').format(_selectedDate)),
+                            const Icon(Icons.calendar_today),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _notesController,
+                      maxLines: 3,
+                      decoration: const InputDecoration(
+                        labelText: 'ملاحظات (اختياري)',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      ),
+                    ),
+                  ],
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'يرجى إدخال اسم الحفلة';
-                  }
-                  return null;
-                },
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'المبلغ (ر.س)',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'يرجى إدخال المبلغ';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'يرجى إدخال مبلغ صحيح';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _selectedPaymentMethod,
-                items: _paymentMethods.map((method) {
-                  return DropdownMenuItem<String>(
-                    value: method['value'] as String,
-                    child: Text(method['text'] as String),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _selectedPaymentMethod = value;
-                    });
-                  }
-                },
-                decoration: const InputDecoration(
-                  labelText: 'طريقة الدفع',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _selectedStatus,
-                items: _statuses.map((status) {
-                  return DropdownMenuItem<String>(
-                    value: status['value'] as String,
-                    child: Text(status['text'] as String),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _selectedStatus = value;
-                    });
-                  }
-                },
-                decoration: const InputDecoration(
-                  labelText: 'حالة الدفع',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _notesController,
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'ملاحظات (اختياري)',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                title: const Text('تاريخ الدفع'),
-                subtitle: Text(DateFormat('yyyy-MM-dd').format(_selectedDate)),
-                trailing: const Icon(Icons.calendar_today),
-                onTap: () async {
-                  final selectedDate = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedDate,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2030),
-                  );
-                  if (selectedDate != null) {
-                    setState(() {
-                      _selectedDate = selectedDate;
-                    });
-                  }
-                },
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      child: const Text('إلغاء'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _submitForm,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: Text(isEditing ? 'تحديث' : 'إضافة'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('إلغاء'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              final payment = PaymentEntity(
-                id: isEditing ? widget.paymentToEdit!.id : DateTime.now().millisecondsSinceEpoch.toString(),
-                eventId: isEditing ? widget.paymentToEdit!.eventId : 'event_${DateTime.now().millisecondsSinceEpoch}',
-                eventName: _eventNameController.text,
-                clientName: _clientNameController.text,
-                amount: double.parse(_amountController.text),
-                paymentDate: _selectedDate,
-                paymentMethod: _selectedPaymentMethod,
-                status: _selectedStatus,
-                notes: _notesController.text,
-                createdAt: isEditing ? widget.paymentToEdit!.createdAt : DateTime.now(),
-              );
-
-              if (isEditing) {
-                context.read<PaymentCubit>().updatePayment(payment);
-              } else {
-                context.read<PaymentCubit>().addPayment(payment);
-              }
-
-              Navigator.of(context).pop();
-            }
-          },
-          child: Text(isEditing ? 'تحديث' : 'إضافة'),
-        ),
-      ],
     );
+  }
+
+  void _submitForm() {
+    if (_formKey.currentState!.validate()) {
+      final payment = PaymentEntity(
+        id: widget.paymentToEdit?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        eventId: widget.paymentToEdit?.eventId ?? 'event_${DateTime.now().millisecondsSinceEpoch}',
+        clientName: _clientNameController.text,
+        eventName: _eventNameController.text,
+        amount: double.parse(_amountController.text),
+        paymentMethod: _selectedPaymentMethod,
+        status: _selectedStatus,
+        paymentDate: _selectedDate,
+        notes: _notesController.text,
+        createdAt: widget.paymentToEdit?.createdAt ?? DateTime.now(),
+      );
+
+      if (widget.paymentToEdit != null) {
+        context.read<PaymentCubit>().updatePayment(payment);
+      } else {
+        context.read<PaymentCubit>().addPayment(payment);
+      }
+
+      Navigator.of(context).pop();
+    }
   }
 }

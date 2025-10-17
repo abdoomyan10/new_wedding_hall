@@ -1,11 +1,13 @@
 // features/reports/presentation/widgets/report_summary_card.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:new_wedding_hall/features/report/presentation/widgets/summary_item.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../domain/entities/report_summary_entity.dart';
 import '../cubit/report_cubit.dart';
 import '../cubit/report_state.dart';
-import 'summary_item.dart';
+
+
 
 class ReportSummaryCard extends StatelessWidget {
   const ReportSummaryCard({super.key});
@@ -22,8 +24,8 @@ class ReportSummaryCard extends StatelessWidget {
           return _buildErrorCard(state.message);
         }
 
-        if (state is ReportLoaded) {
-          return _buildSummaryCard(state.summary);
+        if (state is ReportLoaded && state.summary != null) {
+          return _buildSummaryCard(state.summary!);
         }
 
         return const SizedBox();
@@ -56,7 +58,7 @@ class ReportSummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryCard(summary) {
+  Widget _buildSummaryCard(ReportSummaryEntity summary) {
     return Container(
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.all(16),

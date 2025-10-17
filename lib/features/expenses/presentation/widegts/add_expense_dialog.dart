@@ -9,7 +9,7 @@ class AddExpenseDialog extends StatefulWidget {
   const AddExpenseDialog({super.key});
 
   @override
-  _AddExpenseDialogState createState() => _AddExpenseDialogState();
+  State<AddExpenseDialog> createState() => _AddExpenseDialogState();
 }
 
 class _AddExpenseDialogState extends State<AddExpenseDialog> {
@@ -17,39 +17,42 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   final _descriptionController = TextEditingController();
   final _amountController = TextEditingController();
   final _workerNameController = TextEditingController();
+  String _selectedCategory = 'كهرباء';
 
   DateTime _selectedDate = DateTime.now();
-  String _selectedCategory = 'مواد';
-
   final List<String> _categories = [
-    'مواد',
-    'عمالة',
+    'كهرباء',
+    'ماء',
+    'رواتب',
     'صيانة',
-    'خدمات',
+    'تنظيف',
     'أخرى'
   ];
 
   @override
+  void dispose() {
+    _descriptionController.dispose();
+    _amountController.dispose();
+    _workerNameController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Row(
-        children: [
-          Icon(Icons.add_circle, color: Colors.blue),
-          SizedBox(width: 8),
-          Text('إضافة تكلفة جديدة'),
-        ],
-      ),
+      title: const Text('إضافة تكلفة جديدة'),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildDescriptionField(),
               const SizedBox(height: 16),
               _buildAmountField(),
               const SizedBox(height: 16),
-              _buildWorkerField(),
+              _buildWorkerNameField(),
               const SizedBox(height: 16),
               _buildCategoryField(),
               const SizedBox(height: 16),
@@ -64,12 +67,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           child: const Text('إلغاء'),
         ),
         ElevatedButton(
-          onPressed: _saveExpense,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue.shade700,
-            foregroundColor: Colors.white,
-          ),
-          child: const Text('حفظ التكلفة'),
+          onPressed: _addExpense,
+          child: const Text('إضافة'),
         ),
       ],
     );
@@ -80,9 +79,10 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       controller: _descriptionController,
       decoration: const InputDecoration(
         labelText: 'وصف التكلفة',
-        prefixIcon: Icon(Icons.description),
         border: OutlineInputBorder(),
+        prefixIcon: Icon(Icons.description),
       ),
+      textAlign: TextAlign.right,
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'يرجى إدخال وصف التكلفة';
@@ -97,15 +97,17 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       controller: _amountController,
       decoration: const InputDecoration(
         labelText: 'المبلغ (ر.س)',
-        prefixIcon: Icon(Icons.attach_money),
         border: OutlineInputBorder(),
+        prefixIcon: Icon(Icons.attach_money),
       ),
       keyboardType: TextInputType.number,
+      textAlign: TextAlign.right,
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'يرجى إدخال المبلغ';
         }
-        if (double.tryParse(value) == null) {
+        final amount = double.tryParse(value);
+        if (amount == null || amount <= 0) {
           return 'يرجى إدخال مبلغ صحيح';
         }
         return null;
@@ -113,14 +115,15 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     );
   }
 
-  Widget _buildWorkerField() {
+  Widget _buildWorkerNameField() {
     return TextFormField(
       controller: _workerNameController,
       decoration: const InputDecoration(
         labelText: 'اسم العامل',
-        prefixIcon: Icon(Icons.person),
         border: OutlineInputBorder(),
+        prefixIcon: Icon(Icons.person),
       ),
+      textAlign: TextAlign.right,
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'يرجى إدخال اسم العامل';
@@ -133,21 +136,27 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   Widget _buildCategoryField() {
     return DropdownButtonFormField<String>(
       value: _selectedCategory,
-      decoration: const InputDecoration(
-        labelText: 'الفئة',
-        prefixIcon: Icon(Icons.category),
-        border: OutlineInputBorder(),
-      ),
-      items: _categories.map((String category) {
-        return DropdownMenuItem<String>(
+      items: _categories.map((category) {
+        return DropdownMenuItem(
           value: category,
           child: Text(category),
         );
       }).toList(),
-      onChanged: (String? newValue) {
+      onChanged: (value) {
         setState(() {
-          _selectedCategory = newValue!;
+          _selectedCategory = value!;
         });
+      },
+      decoration: const InputDecoration(
+        labelText: 'الفئة',
+        border: OutlineInputBorder(),
+        prefixIcon: Icon(Icons.category),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'يرجى اختيار الفئة';
+        }
+        return null;
       },
     );
   }
@@ -158,14 +167,17 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       child: InputDecorator(
         decoration: const InputDecoration(
           labelText: 'تاريخ التكلفة',
-          prefixIcon: Icon(Icons.calendar_today),
           border: OutlineInputBorder(),
+          prefixIcon: Icon(Icons.calendar_today),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(DateFormat('yyyy-MM-dd').format(_selectedDate)),
-            const Icon(Icons.arrow_drop_down, color: Colors.grey),
+            const Icon(Icons.arrow_drop_down),
+            Text(
+              DateFormat('yyyy-MM-dd').format(_selectedDate),
+              style: const TextStyle(fontSize: 16),
+            ),
           ],
         ),
       ),
@@ -186,38 +198,21 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     }
   }
 
-  void _saveExpense() {
+  void _addExpense() {
     if (_formKey.currentState!.validate()) {
       final expense = ExpenseEntity(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         description: _descriptionController.text,
         amount: double.parse(_amountController.text),
-        date: _selectedDate,
         workerName: _workerNameController.text,
         category: _selectedCategory,
+        date: _selectedDate,
         createdAt: DateTime.now(),
-        title: _descriptionController.text, // ✅ استخدام الوصف كعنوان
+        title: _descriptionController.text,
       );
 
       context.read<ExpenseCubit>().addExpense(expense);
       Navigator.pop(context);
-
-      // إظهار رسالة نجاح
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('تم إضافة التكلفة بنجاح'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
     }
-  }
-
-  @override
-  void dispose() {
-    _descriptionController.dispose();
-    _amountController.dispose();
-    _workerNameController.dispose();
-    super.dispose();
   }
 }

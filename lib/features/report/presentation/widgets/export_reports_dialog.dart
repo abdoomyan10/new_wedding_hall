@@ -1,13 +1,12 @@
 // features/reports/presentation/widgets/export_reports_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../cubit/report_cubit.dart';
 import '../cubit/report_state.dart';
 
 class ExportReportsDialog {
   static void show(BuildContext context) {
-    final cubit = context.read<ReportCubit>();
+    final cubit = BlocProvider.of<ReportCubit>(context);
     final state = cubit.state;
 
     // التحقق من وجود تقارير لتصديرها
@@ -39,7 +38,7 @@ class ExportReportsDialog {
               subtitle: const Text('ملف PDF قابل للطباعة'),
               onTap: () {
                 Navigator.pop(context);
-                cubit.exportToPdf(); // ✅ استدعاء الدالة المضافة
+                cubit.exportToPdf();
                 _showExportSnackBar(context, 'PDF');
               },
             ),

@@ -23,7 +23,7 @@ class ExpenseLocalDataSource implements ExpenseDataSource {
           amount: 250.0,
           date: DateTime.now().subtract(const Duration(days: 2)),
           workerName: 'أحمد محمد',
-          category: 'صيانة',
+          category: 'تنظيف',
           createdAt: DateTime.now().subtract(const Duration(days: 2)),
         ),
         ExpenseEntity(
@@ -33,7 +33,7 @@ class ExpenseLocalDataSource implements ExpenseDataSource {
           amount: 150.0,
           date: DateTime.now().subtract(const Duration(days: 5)),
           workerName: 'محمد علي',
-          category: 'أثاث',
+          category: 'صيانة',
           createdAt: DateTime.now().subtract(const Duration(days: 5)),
         ),
         ExpenseEntity(
@@ -43,7 +43,7 @@ class ExpenseLocalDataSource implements ExpenseDataSource {
           amount: 800.0,
           date: DateTime.now().subtract(const Duration(days: 10)),
           workerName: 'فريق الصيانة',
-          category: 'مرافق',
+          category: 'كهرباء',
           createdAt: DateTime.now().subtract(const Duration(days: 10)),
         ),
         ExpenseEntity(
@@ -63,7 +63,7 @@ class ExpenseLocalDataSource implements ExpenseDataSource {
           amount: 1200.0,
           date: DateTime.now(),
           workerName: 'فريق التجهيز',
-          category: 'حفلات',
+          category: 'أخرى',
           createdAt: DateTime.now(),
         ),
       ];
@@ -114,26 +114,63 @@ class ExpenseLocalDataSource implements ExpenseDataSource {
     // التأكد من وجود البيانات
     _initializeSampleData();
 
+    if (_expenses.isEmpty) {
+      return const ExpenseStatsEntity(
+        totalExpenses: 0,
+        expenseCount: 0,
+        averageExpense: 0,
+        todayExpenses: 0,
+        monthlyExpenses: 0,
+      );
+    }
+
     final totalExpenses = _expenses.fold(0.0, (sum, expense) => sum + expense.amount);
+    final expenseCount = _expenses.length;
+    final averageExpense = totalExpenses / expenseCount;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final monthStart = DateTime(now.year, now.month, 1);
 
     final todayExpenses = _expenses
-        .where((expense) =>
-    expense.date.year == DateTime.now().year &&
-        expense.date.month == DateTime.now().month &&
-        expense.date.day == DateTime.now().day)
+        .where((expense) => expense.date.isAfter(today.subtract(const Duration(days: 1))))
         .fold(0.0, (sum, expense) => sum + expense.amount);
 
     final monthlyExpenses = _expenses
-        .where((expense) =>
-    expense.date.year == DateTime.now().year &&
-        expense.date.month == DateTime.now().month)
+        .where((expense) => expense.date.isAfter(monthStart.subtract(const Duration(days: 1))))
         .fold(0.0, (sum, expense) => sum + expense.amount);
 
     return ExpenseStatsEntity(
       totalExpenses: totalExpenses,
+      expenseCount: expenseCount,
+      averageExpense: averageExpense,
       todayExpenses: todayExpenses,
       monthlyExpenses: monthlyExpenses,
-      expensesCount: _expenses.length,
     );
+  }
+
+  // دالة إضافية للحصول على التوزيع حسب الفئات
+  Future<Map<String, double>> getCategoryDistribution() async {
+    _initializeSampleData();
+
+    final Map<String, double> distribution = {};
+    for (final expense in _expenses) {
+      distribution.update(
+        expense.category,
+            (value) => value + expense.amount,
+        ifAbsent: () => expense.amount,
+      );
+    }
+    return distribution;
+  }
+
+  // دالة للحصول على المصاريف لفترة محددة
+  Future<List<ExpenseEntity>> getExpensesForPeriod(DateTime startDate, DateTime endDate) async {
+    _initializeSampleData();
+
+    return _expenses.where((expense) =>
+    expense.date.isAfter(startDate.subtract(const Duration(days: 1))) &&
+        expense.date.isBefore(endDate.add(const Duration(days: 1)))
+    ).toList();
   }
 }
