@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 
 class QuickActionsGrid extends StatelessWidget {
   final VoidCallback? onAddEvent;
@@ -28,26 +28,26 @@ class QuickActionsGrid extends StatelessWidget {
         ActionButton(
           icon: Icons.add,
           title: 'إضافة حفلة',
-          color: Colors.green,
-          onTap: (){},
+          color: AppColors.gold,
+          onTap: () {},
         ),
         ActionButton(
           icon: Icons.people,
           title: 'العملاء',
-          color: Colors.blue,
-          onTap: (){},
+          color: AppColors.paleGold,
+          onTap: () {},
         ),
         ActionButton(
           icon: Icons.attach_money,
           title: 'المدفوعات',
-          color: Colors.orange,
-          onTap: (){},
+          color: AppColors.gold,
+          onTap: () {},
         ),
         ActionButton(
           icon: Icons.bar_chart,
           title: 'التقارير',
-          color: Colors.purple,
-          onTap: (){},
+          color: AppColors.deepRed,
+          onTap: () {},
         ),
       ],
     );

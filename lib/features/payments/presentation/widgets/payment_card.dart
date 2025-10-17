@@ -40,11 +40,16 @@ class PaymentCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: payment.statusColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: payment.statusColor.withOpacity(0.3)),
+                    border: Border.all(
+                      color: payment.statusColor.withOpacity(0.3),
+                    ),
                   ),
                   child: Text(
                     payment.statusText,
@@ -62,10 +67,7 @@ class PaymentCard extends StatelessWidget {
             // الصف الثاني: اسم الحفلة
             Text(
               payment.eventName,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.gray500,
-              ),
+              style: const TextStyle(fontSize: 14, color: AppColors.gray500),
             ),
             const SizedBox(height: 12),
 
@@ -78,12 +80,16 @@ class PaymentCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                    color: AppColors.gold,
                   ),
                 ),
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today, size: 16, color: AppColors.gray500),
+                    const Icon(
+                      Icons.calendar_today,
+                      size: 16,
+                      color: AppColors.gray500,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       DateFormat('yyyy-MM-dd').format(payment.paymentDate),
@@ -103,7 +109,10 @@ class PaymentCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.gray100,
                     borderRadius: BorderRadius.circular(8),
@@ -139,7 +148,7 @@ class PaymentCard extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.edit, size: 18),
                   onPressed: () => _showEditPaymentDialog(context, payment),
-                  color: AppColors.info,
+                  color: AppColors.gold,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
@@ -147,7 +156,7 @@ class PaymentCard extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.delete, size: 18),
                   onPressed: () => _showDeleteConfirmation(context, payment.id),
-                  color: AppColors.error,
+                  color: AppColors.deepRed,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),

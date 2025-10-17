@@ -1,5 +1,6 @@
 // features/home/presentation/widgets/upcoming_events_section.dart
 import 'package:flutter/material.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 
 class UpcomingEventsSection extends StatelessWidget {
   final VoidCallback? onViewAll;
@@ -18,7 +19,7 @@ class UpcomingEventsSection extends StatelessWidget {
           children: [
             const Row(
               children: [
-                Icon(Icons.upcoming, color: Colors.purple),
+                Icon(Icons.upcoming, color: AppColors.gold),
                 SizedBox(width: 8),
                 Text(
                   'الحفلات القادمة',
@@ -75,10 +76,10 @@ class UpcomingEventItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.purple.withOpacity(0.1),
+              color: AppColors.gold.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.event, color: Colors.purple, size: 20),
+            child: const Icon(Icons.event, color: AppColors.gold, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -95,10 +96,7 @@ class UpcomingEventItem extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   '$date - $time',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
             ),

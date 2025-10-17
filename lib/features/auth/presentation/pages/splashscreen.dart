@@ -1,47 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
-import 'package:animated_text_kit/animated_text_kit.dart';
 import 'loginscreen.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
-
+class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeAnimations();
     _navigateToHome();
-  }
-
-  void _initializeAnimations() {
-    _controller = AnimationController(
-      duration: const Duration(seconds: 3),
-      vsync: this,
-    );
-
-    _scaleAnimation = Tween<double>(
-      begin: 0.5,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Interval(0.5, 1.0, curve: Curves.easeIn),
-      ),
-    );
-
-    _controller.forward();
   }
 
   void _navigateToHome() async {
@@ -54,31 +26,30 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF8B4513), // لون خشبي فاخر
-      body: Center(
-        child: ScaleTransition(
-          scale: _scaleAnimation,
-          child: FadeTransition(
-            opacity: _fadeAnimation,
+      // keep scaffold background neutral; background image will cover
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          // Fullscreen background image
+          Positioned.fill(
+            child: Image.asset('assets/background.png', fit: BoxFit.cover),
+          ),
+
+          // Content overlay
+          Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // شعار متحرك للصالة
+                // شعار الصالة
                 Container(
                   width: 150,
                   height: 150,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
-                      colors: [Color(0xFFD4AF37), Color(0xFFF4D03F)],
+                      colors: [AppColors.gold, AppColors.paleGold],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -90,117 +61,64 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ],
                   ),
-                  child: Stack(
-                    children: [
-                      Center(
-                        child: Lottie.asset(
-                          'assets/animations/wedding-ring.json',
-                          width: 120,
-                          height: 120,
-                        ),
-                      ),
-                    ],
+                  child: Center(
+                    child: Image.asset(
+                      'assets/mozhela.png',
+                      width: 84,
+                      height: 84,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
 
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
 
-                // اسم التطبيق مع تأثير كتابة
-                AnimatedTextKit(
-                  animatedTexts: [
-                    TypewriterAnimatedText(
-                      'قاعة الأفراح',
-                      textStyle: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontFamily: 'Arial',
-                      ),
-                      speed: Duration(milliseconds: 100),
-                    ),
-                  ],
-                  totalRepeatCount: 1,
+                // اسم التطبيق
+                Text(
+                  'MOZHELA',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.paleGold,
+                    fontFamily: 'Arial',
+                  ),
                 ),
 
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
 
                 // وصف التطبيق
-                FadeInText(
+                Text(
                   'إدارة صالة الأعراس باحترافية',
-                  textStyle: TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
-                    color: Colors.white.withOpacity(0.8),
+                    color: AppColors.paleGold.withOpacity(0.95),
                     fontWeight: FontWeight.w300,
                   ),
-                  duration: Duration(milliseconds: 1500),
+                  textAlign: TextAlign.center,
                 ),
 
-                SizedBox(height: 50),
+                const SizedBox(height: 50),
 
-                // مؤشر التحميل المتحرك
+                // مؤشر التحميل الثابت
                 Container(
                   width: 100,
                   height: 4,
-                  child: LinearProgressIndicator(
-                    backgroundColor: Colors.white.withOpacity(0.3),
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFFD4AF37),
+                  decoration: BoxDecoration(
+                    color: AppColors.paleGold.withOpacity(0.25),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  child: Container(
+                    width: 60, // عرض ثابت للتقدم
+                    decoration: BoxDecoration(
+                      color: AppColors.gold,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-// تأثير كتابة تدريجي للنص
-class FadeInText extends StatefulWidget {
-  final String text;
-  final TextStyle textStyle;
-  final Duration duration;
-
-  const FadeInText(
-    this.text, {
-    Key? key,
-    required this.textStyle,
-    required this.duration,
-  }) : super(key: key);
-
-  @override
-  State<FadeInText> createState() => _FadeInTextState();
-}
-
-class _FadeInTextState extends State<FadeInText>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(duration: widget.duration, vsync: this);
-    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _animation,
-      child: Text(
-        widget.text,
-        style: widget.textStyle,
-        textAlign: TextAlign.center,
+        ],
       ),
     );
   }

@@ -1,5 +1,6 @@
 // features/expenses/presentation/pages/expenses_page.dart
 import 'package:flutter/material.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/expense_cubit.dart';
 import '../widegts/add_expense_dialog.dart';
@@ -11,13 +12,10 @@ class ExpensesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => context.read<ExpenseCubit>()..loadExpenses(),
-      child: Scaffold(
-        appBar: _buildAppBar(context),
-        body: const _ExpensesBody(),
-        floatingActionButton: _buildFloatingActionButton(context),
-      ),
+    return Scaffold(
+      appBar: _buildAppBar(context),
+      body: const _ExpensesBody(),
+      floatingActionButton: _buildFloatingActionButton(context),
     );
   }
 
@@ -25,22 +23,19 @@ class ExpensesPage extends StatelessWidget {
     return AppBar(
       title: const Text(
         'إدارة التكاليف',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 20,
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
       ),
-      backgroundColor: Colors.blue.shade700,
-      foregroundColor: Colors.white,
+      backgroundColor: AppColors.deepRed,
+      foregroundColor: AppColors.paleGold,
       elevation: 2,
       actions: [
         IconButton(
-          icon: const Icon(Icons.picture_as_pdf),
+          icon: const Icon(Icons.picture_as_pdf, color: AppColors.paleGold),
           tooltip: 'تصدير تقرير PDF',
           onPressed: () => _generatePdfReport(context),
         ),
         IconButton(
-          icon: const Icon(Icons.refresh),
+          icon: const Icon(Icons.refresh, color: AppColors.paleGold),
           tooltip: 'تحديث البيانات',
           onPressed: () => context.read<ExpenseCubit>().loadExpenses(),
         ),
@@ -51,8 +46,8 @@ class ExpensesPage extends StatelessWidget {
   Widget _buildFloatingActionButton(BuildContext context) {
     return FloatingActionButton(
       onPressed: () => _showAddExpenseDialog(context),
-      backgroundColor: Colors.blue.shade700,
-      foregroundColor: Colors.white,
+      backgroundColor: AppColors.deepRed,
+      foregroundColor: AppColors.paleGold,
       child: const Icon(Icons.add, size: 28),
     );
   }
@@ -65,7 +60,6 @@ class ExpensesPage extends StatelessWidget {
   }
 
   void _generatePdfReport(BuildContext context) {
-    // سيتم نقله لـ PDF Report Generator
     context.read<ExpenseCubit>().generatePdfReport();
   }
 }
@@ -100,16 +94,16 @@ class _ExpensesListHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      color: Colors.grey.shade50,
-      child: const Row(
-        children: [
+      color: AppColors.gray100,
+      child: Row(
+        children: const [
           Expanded(
             flex: 3,
             child: Text(
               'التكلفة',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.grey,
+                color: AppColors.gray500,
               ),
             ),
           ),
@@ -119,7 +113,7 @@ class _ExpensesListHeader extends StatelessWidget {
               'المبلغ',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.grey,
+                color: AppColors.gray500,
               ),
             ),
           ),
@@ -129,7 +123,7 @@ class _ExpensesListHeader extends StatelessWidget {
               'التاريخ',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.grey,
+                color: AppColors.gray500,
               ),
             ),
           ),

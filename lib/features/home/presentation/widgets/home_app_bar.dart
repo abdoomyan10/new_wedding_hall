@@ -1,5 +1,6 @@
 // features/home/presentation/widgets/home_app_bar.dart
 import 'package:flutter/material.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../cubit/home_cubit.dart';
@@ -27,16 +28,16 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         final homeData = state is HomeLoaded ? state.homeData : null;
 
         return AppBar(
-          title: const Text(
+          title: Text(
             'محاسبة الأفراح',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppColors.paleGold,
             ),
           ),
-          backgroundColor: Colors.purple[700],
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.deepRed,
+          foregroundColor: AppColors.paleGold,
           elevation: 4,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
@@ -79,14 +80,14 @@ class _SearchIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.search, size: 25),
-      onPressed: onPressed ?? () {
-        showSearch(
-          context: context,
-          delegate: CustomSearchDelegate(
-            cubit: context.read<HomeCubit>(),
-          ),
-        );
-      },
+      onPressed:
+          onPressed ??
+          () {
+            showSearch(
+              context: context,
+              delegate: CustomSearchDelegate(cubit: context.read<HomeCubit>()),
+            );
+          },
       tooltip: 'بحث',
     );
   }
@@ -97,10 +98,7 @@ class _NotificationIconButton extends StatelessWidget {
   final int unreadCount;
   final VoidCallback? onPressed;
 
-  const _NotificationIconButton({
-    required this.unreadCount,
-    this.onPressed,
-  });
+  const _NotificationIconButton({required this.unreadCount, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -117,14 +115,11 @@ class _NotificationIconButton extends StatelessWidget {
             top: 8,
             child: Container(
               padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(
-                color: Colors.red,
+              decoration: BoxDecoration(
+                color: AppColors.deepRed,
                 shape: BoxShape.circle,
               ),
-              constraints: const BoxConstraints(
-                minWidth: 16,
-                minHeight: 16,
-              ),
+              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
               child: Text(
                 unreadCount > 9 ? '9+' : unreadCount.toString(),
                 style: const TextStyle(
@@ -164,8 +159,9 @@ class _ProfileIconButton extends StatelessWidget {
           radius: 18,
           backgroundColor: Colors.white.withOpacity(0.3),
           backgroundImage: imageUrl != null ? NetworkImage(imageUrl!) : null,
-          child: imageUrl == null ?
-          const Icon(Icons.person, color: Colors.white, size: 20) : null,
+          child: imageUrl == null
+              ? const Icon(Icons.person, color: Colors.white, size: 20)
+              : null,
         ),
       ),
     );

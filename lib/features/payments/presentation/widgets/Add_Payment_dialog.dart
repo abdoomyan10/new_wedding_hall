@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../domain/entities/payment_entity.dart';
 import '../cubit/payment_cubit.dart';
+import '../../../../core/constants/app_colors.dart';
 
 class AddPaymentDialog extends StatefulWidget {
   final PaymentEntity? paymentToEdit;
@@ -62,7 +63,10 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
     final isEditing = widget.paymentToEdit != null;
 
     return AlertDialog(
-      title: Text(isEditing ? 'تعديل الدفعة' : 'إضافة دفعة جديدة'),
+      title: Text(
+        isEditing ? 'تعديل الدفعة' : 'إضافة دفعة جديدة',
+        style: TextStyle(color: AppColors.deepRed, fontWeight: FontWeight.bold),
+      ),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -197,8 +201,12 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               final payment = PaymentEntity(
-                id: isEditing ? widget.paymentToEdit!.id : DateTime.now().millisecondsSinceEpoch.toString(),
-                eventId: isEditing ? widget.paymentToEdit!.eventId : 'event_${DateTime.now().millisecondsSinceEpoch}',
+                id: isEditing
+                    ? widget.paymentToEdit!.id
+                    : DateTime.now().millisecondsSinceEpoch.toString(),
+                eventId: isEditing
+                    ? widget.paymentToEdit!.eventId
+                    : 'event_${DateTime.now().millisecondsSinceEpoch}',
                 eventName: _eventNameController.text,
                 clientName: _clientNameController.text,
                 amount: double.parse(_amountController.text),
@@ -206,7 +214,9 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
                 paymentMethod: _selectedPaymentMethod,
                 status: _selectedStatus,
                 notes: _notesController.text,
-                createdAt: isEditing ? widget.paymentToEdit!.createdAt : DateTime.now(),
+                createdAt: isEditing
+                    ? widget.paymentToEdit!.createdAt
+                    : DateTime.now(),
               );
 
               if (isEditing) {
@@ -219,6 +229,10 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
             }
           },
           child: Text(isEditing ? 'تحديث' : 'إضافة'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.deepRed,
+            foregroundColor: AppColors.paleGold,
+          ),
         ),
       ],
     );

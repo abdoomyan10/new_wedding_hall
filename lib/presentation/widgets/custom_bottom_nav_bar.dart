@@ -5,7 +5,7 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import '../bottom_nav_cubit.dart';
 
 import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_text_styles.dart';
+// import '../../core/constants/app_text_styles.dart'; // not used here
 
 class CustomBottomNavBar extends StatelessWidget {
   const CustomBottomNavBar({super.key});
@@ -15,24 +15,25 @@ class CustomBottomNavBar extends StatelessWidget {
     return BlocBuilder<BottomNavCubit, int>(
       builder: (context, currentIndex) {
         return CurvedNavigationBar(
-
           index: currentIndex,
           onTap: (index) => context.read<BottomNavCubit>().changeTab(index),
+          // Keep the body background visible behind the nav bar
           backgroundColor: AppColors.scaffoldBackground,
-          color: AppColors.error,
-          buttonBackgroundColor: AppColors.error,
+          // Use brand colors: deep red bar with gold active button
+          color: AppColors.deepRed,
+          buttonBackgroundColor: AppColors.gold,
           items: const [
             // الرئيسية
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 //FaIcon(FontAwesomeIcons.house,color:AppColors.curvedNavBarActiveColor ,),
-                Icon(Icons.account_balance, color: AppColors.curvedNavBarActiveColor),
+                Icon(Icons.account_balance, color: AppColors.paleGold),
                 SizedBox(height: 2),
                 Text(
                   'الرئيسية',
                   style: TextStyle(
-                    color: AppColors.curvedNavBarActiveColor,
+                    color: AppColors.paleGold,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -43,12 +44,12 @@ class CustomBottomNavBar extends StatelessWidget {
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.meeting_room, color: AppColors.curvedNavBarActiveColor),
+                Icon(Icons.meeting_room, color: AppColors.paleGold),
                 SizedBox(height: 2),
                 Text(
                   'القاعات',
                   style: TextStyle(
-                    color: AppColors.curvedNavBarActiveColor,
+                    color: AppColors.paleGold,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -59,12 +60,12 @@ class CustomBottomNavBar extends StatelessWidget {
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.event, color: AppColors.curvedNavBarActiveColor),
+                Icon(Icons.event, color: AppColors.paleGold),
                 SizedBox(height: 2),
                 Text(
                   'الحجوزات',
                   style: TextStyle(
-                    color: AppColors.curvedNavBarActiveColor,
+                    color: AppColors.paleGold,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -75,12 +76,12 @@ class CustomBottomNavBar extends StatelessWidget {
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.dashboard, color: AppColors.curvedNavBarActiveColor),
+                Icon(Icons.dashboard, color: AppColors.paleGold),
                 SizedBox(height: 2),
                 Text(
                   'التكاليف',
                   style: TextStyle(
-                    color: AppColors.curvedNavBarActiveColor,
+                    color: AppColors.paleGold,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -91,12 +92,12 @@ class CustomBottomNavBar extends StatelessWidget {
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.settings, color: AppColors.curvedNavBarActiveColor),
+                Icon(Icons.settings, color: AppColors.paleGold),
                 SizedBox(height: 2),
                 Text(
                   'الإعدادات',
                   style: TextStyle(
-                    color: AppColors.curvedNavBarActiveColor,
+                    color: AppColors.paleGold,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),

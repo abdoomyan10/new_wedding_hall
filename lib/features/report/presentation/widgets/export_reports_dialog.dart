@@ -1,6 +1,7 @@
 // features/reports/presentation/widgets/export_reports_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 
 import '../cubit/report_cubit.dart';
 import '../cubit/report_state.dart';
@@ -27,14 +28,14 @@ class ExportReportsDialog {
               padding: EdgeInsets.all(16.0),
               child: Text(
                 'تصدير التقارير',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+              leading: const Icon(
+                Icons.picture_as_pdf,
+                color: AppColors.deepRed,
+              ),
               title: const Text('تصدير كـ PDF'),
               subtitle: const Text('ملف PDF قابل للطباعة'),
               onTap: () {
@@ -45,7 +46,7 @@ class ExportReportsDialog {
             ),
             const Divider(),
             ListTile(
-              leading: const Icon(Icons.table_chart, color: Colors.green),
+              leading: const Icon(Icons.table_chart, color: AppColors.gold),
               title: const Text('تصدير كـ Excel'),
               subtitle: const Text('ملف Excel للتحليل'),
               onTap: () {
@@ -78,7 +79,7 @@ class ExportReportsDialog {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.deepRed,
         duration: const Duration(seconds: 3),
       ),
     );
