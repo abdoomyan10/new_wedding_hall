@@ -9,11 +9,7 @@ class ReportCard extends StatelessWidget {
   final ReportEntity report;
   final String period;
 
-  const ReportCard({
-    super.key,
-    required this.report,
-    required this.period,
-  });
+  const ReportCard({super.key, required this.report, required this.period});
 
   @override
   Widget build(BuildContext context) {
@@ -51,10 +47,7 @@ class ReportCard extends StatelessWidget {
         ),
         Text(
           _formatDate(),
-          style: const TextStyle(
-            fontSize: 14,
-            color: AppColors.gray500,
-          ),
+          style: const TextStyle(fontSize: 14, color: AppColors.gray500),
         ),
       ],
     );
@@ -67,17 +60,17 @@ class ReportCard extends StatelessWidget {
         ReportMetric(
           value: '${report.totalRevenue.toStringAsFixed(0)} ر.س',
           label: 'الإيرادات',
-          color: AppColors.success,
+          color: AppColors.gold,
         ),
         ReportMetric(
           value: '${report.expenses.toStringAsFixed(0)} ر.س',
           label: 'المصروفات',
-          color: AppColors.warning,
+          color: AppColors.deepRed,
         ),
         ReportMetric(
           value: '${report.netProfit.toStringAsFixed(0)} ر.س',
           label: 'صافي الربح',
-          color: AppColors.primary,
+          color: AppColors.paleGold,
         ),
       ],
     );
@@ -90,17 +83,17 @@ class ReportCard extends StatelessWidget {
         ReportMetric(
           value: '${report.totalPayments.toStringAsFixed(0)} ر.س',
           label: 'المدفوعات',
-          color: AppColors.info,
+          color: AppColors.gold,
         ),
         ReportMetric(
           value: '${report.eventsCount}',
           label: 'عدد الحفلات',
-          color: AppColors.gray500,
+          color: AppColors.paleGold,
         ),
         ReportMetric(
           value: '${report.profitMargin.toStringAsFixed(1)}%',
           label: 'هامش الربح',
-          color: AppColors.success,
+          color: AppColors.paleGold,
         ),
       ],
     );
@@ -133,5 +126,4 @@ class ReportCard extends StatelessWidget {
         return DateFormat('yyyy-MM-dd').format(report.date);
     }
   }
-
 }

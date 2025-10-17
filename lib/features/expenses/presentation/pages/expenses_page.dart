@@ -2,11 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/expense_cubit.dart';
-
 import '../widegts/add_expense_dialog.dart';
 import '../widegts/expenses_list.dart';
 import '../widegts/expenses_stats_card.dart';
-import 'saved_reports_page.dart';
 
 class ExpensesPage extends StatelessWidget {
   const ExpensesPage({super.key});
@@ -36,58 +34,10 @@ class ExpensesPage extends StatelessWidget {
       foregroundColor: Colors.white,
       elevation: 2,
       actions: [
-        // زر التقارير المحفوظة
         IconButton(
-          icon: const Icon(Icons.folder),
-          tooltip: 'التقارير المحفوظة',
-          onPressed: () => _navigateToSavedReports(context),
-        ),
-        // زر تصدير PDF مع حفظ على الجهاز
-        PopupMenuButton<String>(
           icon: const Icon(Icons.picture_as_pdf),
-          tooltip: 'تصدير PDF',
-          onSelected: (value) {
-            if (value == 'save_report') {
-              _savePdfReport(context);
-            } else if (value == 'print_report') {
-              _printPdfReport(context);
-            } else if (value == 'saved_reports') {
-              _navigateToSavedReports(context);
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'save_report',
-              child: Row(
-                children: [
-                  Icon(Icons.save, color: Colors.green),
-                  SizedBox(width: 8),
-                  Text('حفظ PDF على الجهاز'),
-                ],
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'print_report',
-              child: Row(
-                children: [
-                  Icon(Icons.print, color: Colors.blue),
-                  SizedBox(width: 8),
-                  Text('طباعة مباشرة'),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(),
-            const PopupMenuItem(
-              value: 'saved_reports',
-              child: Row(
-                children: [
-                  Icon(Icons.folder_open, color: Colors.orange),
-                  SizedBox(width: 8),
-                  Text('التقارير المحفوظة'),
-                ],
-              ),
-            ),
-          ],
+          tooltip: 'تصدير تقرير PDF',
+          onPressed: () => _generatePdfReport(context),
         ),
         IconButton(
           icon: const Icon(Icons.refresh),
@@ -114,39 +64,9 @@ class ExpensesPage extends StatelessWidget {
     );
   }
 
-  void _savePdfReport(BuildContext context) {
-    context.read<ExpenseCubit>().generateAndSavePdfReport();
-
-    // إظهار رسالة تأكيد
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('جاري حفظ تقرير PDF...'),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _printPdfReport(BuildContext context) {
+  void _generatePdfReport(BuildContext context) {
+    // سيتم نقله لـ PDF Report Generator
     context.read<ExpenseCubit>().generatePdfReport();
-
-    // إظهار رسالة تأكيد
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('جاري إعداد التقرير للطباعة...'),
-        backgroundColor: Colors.blue,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _navigateToSavedReports(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SavedReportsPage()),
-    );
   }
 }
 
@@ -157,9 +77,16 @@ class _ExpensesBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Column(
       children: [
+        // بطاقة الإحصائيات
         ExpenseStatsCard(),
+
+        // فاصل
         Divider(height: 1, thickness: 1),
+
+        // عنوان القائمة
         _ExpensesListHeader(),
+
+        // قائمة التكاليف
         Expanded(child: ExpenseList()),
       ],
     );
@@ -206,7 +133,7 @@ class _ExpensesListHeader extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(width: 48),
+          SizedBox(width: 48), // مساحة لأيقونة الحذف
         ],
       ),
     );

@@ -32,12 +32,12 @@ class DatePickerField extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.deepRed.withOpacity(0.08),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.calendar_today,
-                color: AppColors.primary,
+                color: AppColors.gold,
                 size: 20,
               ),
             ),
@@ -65,10 +65,7 @@ class DatePickerField extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(
-              Icons.arrow_drop_down,
-              color: AppColors.gray500,
-            ),
+            const Icon(Icons.arrow_drop_down, color: AppColors.gray500),
           ],
         ),
       ),
@@ -85,14 +82,12 @@ class DatePickerField extends StatelessWidget {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: AppColors.primary,
-              onPrimary: AppColors.white,
+              primary: AppColors.deepRed,
+              onPrimary: AppColors.paleGold,
               onSurface: AppColors.black,
             ),
             textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
-              ),
+              style: TextButton.styleFrom(foregroundColor: AppColors.deepRed),
             ),
           ),
           child: child!,

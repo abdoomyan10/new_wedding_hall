@@ -1,5 +1,6 @@
 // features/home/presentation/widgets/quick_stats_card.dart
 import 'package:flutter/material.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 import '../../domain/entities/home_entity.dart';
 
 class QuickStatsCard extends StatelessWidget {
@@ -18,7 +19,7 @@ class QuickStatsCard extends StatelessWidget {
           children: [
             const Row(
               children: [
-                Icon(Icons.insights, color: Colors.purple),
+                Icon(Icons.insights, color: AppColors.gold),
                 SizedBox(width: 8),
                 Text(
                   'نظرة سريعة',
@@ -34,19 +35,19 @@ class QuickStatsCard extends StatelessWidget {
                   icon: Icons.notifications,
                   value: homeData.unreadNotificationsCount.toString(),
                   label: 'إشعارات',
-                  color: Colors.orange,
+                  color: AppColors.gold,
                 ),
                 _StatItem(
                   icon: Icons.event,
                   value: '5',
                   label: 'حفلات هذا الأسبوع',
-                  color: Colors.green,
+                  color: AppColors.paleGold,
                 ),
                 _StatItem(
                   icon: Icons.attach_money,
                   value: '25,000',
                   label: 'إيرادات الشهر',
-                  color: Colors.blue,
+                  color: AppColors.deepRed,
                 ),
               ],
             ),
@@ -85,18 +86,9 @@ class _StatItem extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
       ],
     );
   }

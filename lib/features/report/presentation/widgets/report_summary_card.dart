@@ -38,9 +38,7 @@ class ReportSummaryCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.all(16),
       decoration: _cardDecoration(),
-      child: const Center(
-        child: CircularProgressIndicator(),
-      ),
+      child: const Center(child: CircularProgressIndicator()),
     );
   }
 
@@ -72,12 +70,12 @@ class ReportSummaryCard extends StatelessWidget {
               SummaryItem(
                 value: '${summary.totalRevenue.toStringAsFixed(0)} ر.س',
                 label: 'إجمالي الإيرادات',
-                color: AppColors.success,
+                color: AppColors.gold,
               ),
               SummaryItem(
                 value: '${summary.netProfit.toStringAsFixed(0)} ر.س',
                 label: 'صافي الربح',
-                color: AppColors.primary,
+                color: AppColors.paleGold,
               ),
             ],
           ),
@@ -89,12 +87,12 @@ class ReportSummaryCard extends StatelessWidget {
               SummaryItem(
                 value: '${summary.totalExpenses.toStringAsFixed(0)} ر.س',
                 label: 'إجمالي المصروفات',
-                color: AppColors.warning,
+                color: AppColors.deepRed,
               ),
               SummaryItem(
                 value: '${summary.profitMargin.toStringAsFixed(1)}%',
                 label: 'هامش الربح',
-                color: AppColors.info,
+                color: AppColors.gold,
               ),
             ],
           ),

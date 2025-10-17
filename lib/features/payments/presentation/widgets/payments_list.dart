@@ -64,14 +64,21 @@ class PaymentsList extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 64, color: AppColors.error),
+                const Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: AppColors.deepRed,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   state.message,
-                  style: const TextStyle(fontSize: 16, color: AppColors.error),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: AppColors.deepRed,
+                  ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: () {
                     context.read<PaymentCubit>().loadPayments();

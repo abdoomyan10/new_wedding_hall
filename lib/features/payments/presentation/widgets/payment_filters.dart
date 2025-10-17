@@ -25,7 +25,11 @@ class PaymentFilters extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: FilterChip(
                 label: Text(filter['text'] as String),
-                avatar: Icon(filter['icon'] as IconData, size: 16),
+                avatar: Icon(
+                  filter['icon'] as IconData,
+                  size: 16,
+                  color: AppColors.paleGold,
+                ),
                 onSelected: (selected) {
                   // TODO: تطبيق التصفية حسب الحالة
                   if (filter['key'] == 'all') {
@@ -33,7 +37,7 @@ class PaymentFilters extends StatelessWidget {
                   }
                 },
                 backgroundColor: AppColors.gray200,
-                selectedColor: AppColors.primary.withOpacity(0.2),
+                selectedColor: AppColors.deepRed.withOpacity(0.08),
                 labelStyle: const TextStyle(fontSize: 12),
               ),
             );
