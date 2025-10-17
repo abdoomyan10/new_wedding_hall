@@ -6,7 +6,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:open_file/open_file.dart';
 
 class PdfStorageService {
-  static Future<String?> savePdfToDevice(Uint8List pdfBytes, String fileName) async {
+  static Future<String?> savePdfToDevice(
+    Uint8List pdfBytes,
+    String fileName,
+  ) async {
     try {
       // طلب الإذن للتخزين (لـ Android)
       if (Platform.isAndroid) {
@@ -26,7 +29,9 @@ class PdfStorageService {
         try {
           directory = Directory('/storage/emulated/0/Download');
           if (!await directory.exists()) {
-            directory = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
+            directory =
+                await getExternalStorageDirectory() ??
+                await getApplicationDocumentsDirectory();
           }
         } catch (e) {
           directory = await getApplicationDocumentsDirectory();
@@ -34,7 +39,9 @@ class PdfStorageService {
       } else if (Platform.isIOS) {
         directory = await getApplicationDocumentsDirectory();
       } else {
-        directory = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
+        directory =
+            await getDownloadsDirectory() ??
+            await getApplicationDocumentsDirectory();
       }
 
       // التأكد من وجود المجلد
