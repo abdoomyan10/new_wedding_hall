@@ -2,6 +2,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 
 import '../cubit/home_cubit.dart';
 
@@ -67,14 +68,16 @@ class CustomSearchDelegate extends SearchDelegate {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
-        ...quickSearches.map((text) => ListTile(
-          leading: const Icon(Icons.search),
-          title: Text(text),
-          onTap: () {
-            query = text;
-            cubit.search(text);
-          },
-        )),
+        ...quickSearches.map(
+          (text) => ListTile(
+            leading: const Icon(Icons.search),
+            title: Text(text),
+            onTap: () {
+              query = text;
+              cubit.search(text);
+            },
+          ),
+        ),
       ],
     );
   }
@@ -87,9 +90,7 @@ class CustomSearchDelegate extends SearchDelegate {
         } else if (state is SearchResults) {
           final results = state.results.results;
           if (results.isEmpty) {
-            return const Center(
-              child: Text('لا توجد نتائج'),
-            );
+            return const Center(child: Text('لا توجد نتائج'));
           }
 
           return ListView.builder(
@@ -132,9 +133,9 @@ class CustomSearchDelegate extends SearchDelegate {
   @override
   ThemeData appBarTheme(BuildContext context) {
     return Theme.of(context).copyWith(
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.purple,
-        foregroundColor: Colors.white,
+      appBarTheme: AppBarTheme(
+        backgroundColor: AppColors.deepRed,
+        foregroundColor: AppColors.paleGold,
       ),
       inputDecorationTheme: const InputDecorationTheme(
         hintStyle: TextStyle(color: Colors.white70),

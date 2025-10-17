@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/dependencies.dart';
-import '../../../../injection_container.dart';
 import '../cubit/report_cubit.dart';
 import '../widgets/export_reports_dialog.dart';
 import '../widgets/time_period_selector.dart';
@@ -21,8 +20,8 @@ class ReportsPage extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('التقارير'),
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.white,
+          backgroundColor: AppColors.deepRed,
+          foregroundColor: AppColors.paleGold,
           elevation: 0,
           actions: [
             IconButton(

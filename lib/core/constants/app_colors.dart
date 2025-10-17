@@ -11,6 +11,11 @@ class AppColors {
   static const Color primaryDark = Color(0xFF0052CC);
   static const Color primaryLight = Color(0xFF4D94FF);
 
+  // Brand / Wedding palette (centralized)
+  static const Color deepRed = Color(0xFF8B0000); // 8B0000
+  static const Color gold = Color(0xFFD4AF37); // D4AF37
+  static const Color paleGold = Color(0xFFF4E3A3); // F4E3A3
+
   // Secondary Colors
   static const Color secondary = Color(0xFF00C853);
   static const Color secondaryDark = Color(0xFF00A344);
@@ -140,7 +145,9 @@ extension AppColorsExtension on BuildContext {
   }
 
   // Dynamic colors based on theme
-  Color get adaptiveBackground => isDarkMode ? AppColors.gray900 : AppColors.background;
+  Color get adaptiveBackground =>
+      isDarkMode ? AppColors.gray900 : AppColors.background;
   Color get adaptiveSurface => isDarkMode ? AppColors.gray800 : AppColors.white;
-  Color get adaptiveText => isDarkMode ? AppColors.white : AppColors.textPrimary;
+  Color get adaptiveText =>
+      isDarkMode ? AppColors.white : AppColors.textPrimary;
 }

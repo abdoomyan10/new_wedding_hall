@@ -1,4 +1,3 @@
-
 // features/payments/presentation/widgets/payment_stats_section.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,7 +18,7 @@ class PaymentStatsSection extends StatelessWidget {
           return Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.05),
+              color: AppColors.deepRed.withOpacity(0.04),
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(20),
                 bottomRight: Radius.circular(20),
@@ -35,13 +34,13 @@ class PaymentStatsSection extends StatelessWidget {
                       value: '${stats.totalReceived.toStringAsFixed(0)} ر.س',
                       label: 'إجمالي المستلم',
                       icon: Icons.check_circle,
-                      color: AppColors.success,
+                      color: AppColors.gold,
                     ),
                     StatItem(
                       value: '${stats.totalPending.toStringAsFixed(0)} ر.س',
                       label: 'المدفوعات المعلقة',
                       icon: Icons.pending,
-                      color: AppColors.warning,
+                      color: AppColors.deepRed,
                     ),
                   ],
                 ),
@@ -54,13 +53,13 @@ class PaymentStatsSection extends StatelessWidget {
                       value: stats.completedPayments.toString(),
                       label: 'مدفوعات مكتملة',
                       icon: Icons.payment,
-                      color: AppColors.info,
+                      color: AppColors.paleGold,
                     ),
                     StatItem(
                       value: stats.pendingPayments.toString(),
                       label: 'مدفوعات معلقة',
                       icon: Icons.schedule,
-                      color: AppColors.primary,
+                      color: AppColors.gold,
                     ),
                   ],
                 ),
@@ -71,7 +70,7 @@ class PaymentStatsSection extends StatelessWidget {
                       ? stats.totalReceived / stats.totalExpected
                       : 0,
                   backgroundColor: AppColors.gray200,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.success),
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.gold),
                 ),
                 const SizedBox(height: 8),
                 Text(

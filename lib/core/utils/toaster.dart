@@ -2,6 +2,7 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:new_wedding_hall/core/extensions/context_extention.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 
 class Toaster {
   Toaster._();
@@ -17,7 +18,7 @@ class Toaster {
               children: [
                 Icon(
                   isError ? Icons.warning_amber_rounded : Icons.done,
-                  color: isError ? const Color(0xff9F1C48) : Colors.green,
+                  color: isError ? AppColors.deepRed : AppColors.gold,
                   size: 30,
                 ),
                 const SizedBox(width: 10),
@@ -25,7 +26,7 @@ class Toaster {
                   child: Text(
                     text,
                     style: TextStyle(
-                      color: isError ? const Color(0xff9F1C48) : Colors.green,
+                      color: isError ? AppColors.deepRed : AppColors.gold,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -75,7 +76,7 @@ class CustomLoadingWidget extends StatelessWidget {
     return SizedBox(
       width: width,
       height: height,
-      child: CircularProgressIndicator(),
+      child: CircularProgressIndicator(color: AppColors.paleGold),
     );
   }
 }

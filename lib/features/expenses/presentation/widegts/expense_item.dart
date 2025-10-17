@@ -1,5 +1,6 @@
 // features/expenses/presentation/widgets/expense_item.dart
 import 'package:flutter/material.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 import '../../domain/entities/expense_entity.dart';
 
 class ExpenseItem extends StatelessWidget {
@@ -24,9 +25,7 @@ class ExpenseItem extends StatelessWidget {
           expense.description,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(
-          '${expense.category} - ${_formatDate(expense.date)}',
-        ),
+        subtitle: Text('${expense.category} - ${_formatDate(expense.date)}'),
         trailing: _buildTrailingButtons(),
         onTap: onTap,
       ),
@@ -37,13 +36,13 @@ class ExpenseItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
+        color: AppColors.paleGold.withOpacity(0.3),
         shape: BoxShape.circle,
       ),
       child: Text(
         '${expense.amount.toStringAsFixed(2)} ر.س',
         style: TextStyle(
-          color: Colors.red.shade700,
+          color: AppColors.deepRed,
           fontWeight: FontWeight.bold,
           fontSize: 12,
         ),
@@ -58,7 +57,7 @@ class ExpenseItem extends StatelessWidget {
           value: 'delete',
           child: Row(
             children: [
-              Icon(Icons.delete, color: Colors.red),
+              Icon(Icons.delete, color: AppColors.deepRed),
               SizedBox(width: 8),
               Text('حذف'),
             ],

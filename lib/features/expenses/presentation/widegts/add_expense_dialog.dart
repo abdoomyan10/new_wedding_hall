@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 import '../cubit/expense_cubit.dart';
 import '../../domain/entities/expense_entity.dart';
 
@@ -21,24 +22,12 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   DateTime _selectedDate = DateTime.now();
   String _selectedCategory = 'مواد';
 
-  final List<String> _categories = [
-    'مواد',
-    'عمالة',
-    'صيانة',
-    'خدمات',
-    'أخرى'
-  ];
+  final List<String> _categories = ['مواد', 'عمالة', 'صيانة', 'خدمات', 'أخرى'];
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Row(
-        children: [
-          Icon(Icons.add_circle, color: Colors.blue),
-          SizedBox(width: 8),
-          Text('إضافة تكلفة جديدة'),
-        ],
-      ),
+      title: const Row(children: [Icon(Icons.add_circle)]),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -66,8 +55,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         ElevatedButton(
           onPressed: _saveExpense,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue.shade700,
-            foregroundColor: Colors.white,
+            backgroundColor: AppColors.deepRed,
+            foregroundColor: AppColors.paleGold,
           ),
           child: const Text('حفظ التكلفة'),
         ),
@@ -139,10 +128,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         border: OutlineInputBorder(),
       ),
       items: _categories.map((String category) {
-        return DropdownMenuItem<String>(
-          value: category,
-          child: Text(category),
-        );
+        return DropdownMenuItem<String>(value: category, child: Text(category));
       }).toList(),
       onChanged: (String? newValue) {
         setState(() {
@@ -206,7 +192,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('تم إضافة التكلفة بنجاح'),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.gold,
           behavior: SnackBarBehavior.floating,
         ),
       );

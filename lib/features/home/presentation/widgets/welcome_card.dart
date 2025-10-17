@@ -1,5 +1,6 @@
 // features/home/presentation/widgets/welcome_card.dart
 import 'package:flutter/material.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 
 class WelcomeCard extends StatelessWidget {
   final String userName;
@@ -17,7 +18,7 @@ class WelcomeCard extends StatelessWidget {
           children: [
             const CircleAvatar(
               radius: 25,
-              backgroundColor: Colors.purple,
+              backgroundColor: AppColors.gold,
               child: Icon(Icons.person, color: Colors.white, size: 30),
             ),
             const SizedBox(width: 16),
@@ -35,10 +36,7 @@ class WelcomeCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     'إدارة صالة الأفراح',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                 ],
               ),

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
@@ -25,10 +24,12 @@ class PeriodButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : AppColors.gray100,
+          color: isSelected
+              ? AppColors.deepRed.withOpacity(0.08)
+              : AppColors.gray100,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.transparent,
+            color: isSelected ? AppColors.deepRed : Colors.transparent,
           ),
         ),
         child: Column(
@@ -36,7 +37,9 @@ class PeriodButton extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isSelected ? AppColors.primary : AppColors.gray500,
+              color: isSelected
+                  ? AppColors.gold
+                  : AppColors.paleGold.withOpacity(0.9),
               size: 20,
             ),
             const SizedBox(height: 4),
@@ -45,7 +48,9 @@ class PeriodButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? AppColors.primary : AppColors.gray500,
+                color: isSelected
+                    ? AppColors.gold
+                    : AppColors.paleGold.withOpacity(0.9),
               ),
             ),
           ],

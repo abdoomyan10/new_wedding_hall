@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:new_wedding_hall/features/auth/presentation/pages/loginscreen.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -117,7 +118,12 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('إنشاء حساب جديد'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('إنشاء حساب جديد'),
+        centerTitle: true,
+        backgroundColor: AppColors.gold,
+        foregroundColor: AppColors.paleGold,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -132,7 +138,15 @@ class _SignUpPageState extends State<SignUpPage> {
                 textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
                   labelText: 'الاسم الكامل',
-                  prefixIcon: const Icon(Icons.person),
+                  prefixIcon: Icon(Icons.person, color: AppColors.deepRed),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: AppColors.gold, width: 2),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -152,7 +166,15 @@ class _SignUpPageState extends State<SignUpPage> {
                 textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
                   labelText: 'البريد الإلكتروني',
-                  prefixIcon: const Icon(Icons.email),
+                  prefixIcon: Icon(Icons.email, color: AppColors.deepRed),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: AppColors.gold, width: 2),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -176,16 +198,25 @@ class _SignUpPageState extends State<SignUpPage> {
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: 'كلمة المرور',
-                  prefixIcon: const Icon(Icons.lock),
+                  prefixIcon: Icon(Icons.lock, color: AppColors.deepRed),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
                           ? Icons.visibility
                           : Icons.visibility_off,
+                      color: AppColors.deepRed,
                     ),
                     onPressed: () {
                       setState(() => _obscurePassword = !_obscurePassword);
                     },
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: AppColors.gold, width: 2),
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -208,12 +239,16 @@ class _SignUpPageState extends State<SignUpPage> {
                 obscureText: _obscureConfirmPassword,
                 decoration: InputDecoration(
                   labelText: 'تأكيد كلمة المرور',
-                  prefixIcon: const Icon(Icons.lock_outline),
+                  prefixIcon: Icon(
+                    Icons.lock_outline,
+                    color: AppColors.deepRed,
+                  ),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureConfirmPassword
                           ? Icons.visibility
                           : Icons.visibility_off,
+                      color: AppColors.deepRed,
                     ),
                     onPressed: () {
                       setState(
@@ -221,6 +256,14 @@ class _SignUpPageState extends State<SignUpPage> {
                             _obscureConfirmPassword = !_obscureConfirmPassword,
                       );
                     },
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: AppColors.gold, width: 2),
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -242,14 +285,20 @@ class _SignUpPageState extends State<SignUpPage> {
                 onPressed: _isLoading ? null : _signUp,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: AppColors.deepRed,
+                  foregroundColor: AppColors.paleGold,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
                 child: _isLoading
-                    ? const CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          color: AppColors.paleGold,
+                          strokeWidth: 2,
+                        ),
                       )
                     : const Text('إنشاء حساب', style: TextStyle(fontSize: 18)),
               ),
@@ -269,6 +318,9 @@ class _SignUpPageState extends State<SignUpPage> {
                       );
                     },
                     child: const Text('سجل دخولك الآن'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.gold,
+                    ),
                   ),
                 ],
               ),

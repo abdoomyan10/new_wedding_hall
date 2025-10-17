@@ -14,13 +14,17 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('الإعدادات'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
+        backgroundColor: AppColors.deepRed,
+        foregroundColor: AppColors.paleGold,
       ),
       body: const Center(
         child: Text(
           "صفحة الإعدادات",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: AppColors.paleGold,
+          ),
         ),
       ),
     );

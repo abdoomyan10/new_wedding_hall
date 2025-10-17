@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:new_wedding_hall/injection_container.dart' as di;
 import 'package:new_wedding_hall/core/utils/request_state.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 import 'package:new_wedding_hall/features/auth/domain/usecase/login-user.dart';
 import 'package:new_wedding_hall/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:new_wedding_hall/features/auth/presentation/bloc/auth_event.dart';
@@ -21,6 +22,10 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  // Use central palette from AppColors
+  // Colors are defined in lib/core/theme/app_colors.dart
+  // (imported lazily below)
+
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -54,7 +59,12 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('تسجيل الدخول'), centerTitle: true),
+      appBar: AppBar(
+        backgroundColor: AppColors.gold,
+        title: const Text('تسجيل الدخول', style: TextStyle()),
+        foregroundColor: AppColors.paleGold,
+        centerTitle: true,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -64,7 +74,7 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               const SizedBox(height: 30),
               // شعار التطبيق (اختياري)
-              Image.asset('assets/logo.jpg', height: 120, width: 120),
+              Image.asset('assets/mozhela.png', height: 120, width: 120),
               const SizedBox(height: 40),
               // حقل البريد الإلكتروني
               TextFormField(
@@ -74,6 +84,15 @@ class _LoginPageState extends State<LoginPage> {
                 decoration: InputDecoration(
                   labelText: 'البريد الإلكتروني',
                   prefixIcon: const Icon(Icons.email),
+                  // Use deep red for focused/border and gold accents
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: AppColors.gold, width: 2),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -97,16 +116,24 @@ class _LoginPageState extends State<LoginPage> {
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: 'كلمة المرور',
-                  prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
                           ? Icons.visibility
                           : Icons.visibility_off,
+                      color: AppColors.deepRed,
                     ),
                     onPressed: () {
                       setState(() => _obscurePassword = !_obscurePassword);
                     },
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: AppColors.gold, width: 2),
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -131,6 +158,9 @@ class _LoginPageState extends State<LoginPage> {
                     // إضافة صفحة استعادة كلمة المرور لاحقًا
                   },
                   child: const Text('نسيت كلمة المرور؟'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.deepRed,
+                  ),
                 ),
               ),
               const SizedBox(height: 30),
@@ -153,25 +183,48 @@ class _LoginPageState extends State<LoginPage> {
                 builder: (context, state) {
                   return ElevatedButton.icon(
                     icon: state.status == RequestStatus.loading
-                        ? CircularProgressIndicator()
-                        : null,
+                        ? SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.paleGold,
+                              ),
+                            ),
+                          )
+                        : const Icon(Icons.login),
                     onPressed: state.status != RequestStatus.loading
                         ? _login
                         : null,
-                    label: Text('تسجيل الدخول', style: TextStyle(fontSize: 18)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.deepRed,
+                      foregroundColor: AppColors.paleGold,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    label: const Text(
+                      'تسجيل الدخول',
+                      style: TextStyle(fontSize: 18),
+                    ),
                   );
                 },
               ),
               const SizedBox(height: 20),
               // خط فاصل
               Row(
-                children: const [
-                  Expanded(child: Divider()),
+                children: [
+                  Expanded(child: Divider(color: AppColors.deepRed)),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8),
-                    child: Text('أو'),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(
+                      'أو',
+                      style: TextStyle(color: AppColors.deepRed),
+                    ),
                   ),
-                  Expanded(child: Divider()),
+                  Expanded(child: Divider(color: AppColors.deepRed)),
                 ],
               ),
               const SizedBox(height: 20),
@@ -185,6 +238,9 @@ class _LoginPageState extends State<LoginPage> {
                 },
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: BorderSide(color: AppColors.gold, width: 1.5),
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: AppColors.gold,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
