@@ -59,8 +59,9 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.paleGold,
       appBar: AppBar(
-        backgroundColor: AppColors.gold,
+        backgroundColor: AppColors.deepRed,
         title: const Text('تسجيل الدخول', style: TextStyle()),
         foregroundColor: AppColors.paleGold,
         centerTitle: true,
@@ -72,9 +73,29 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 30),
-              // شعار التطبيق (اختياري)
-              Image.asset('assets/mozhela.png', height: 120, width: 120),
+              Container(
+                width: 150,
+                height: 150,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.transparent,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/mozhela.png',
+                    width: 150,
+                    height: 150,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
               const SizedBox(height: 40),
               // حقل البريد الإلكتروني
               TextFormField(
@@ -82,8 +103,9 @@ class _LoginPageState extends State<LoginPage> {
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
+                  floatingLabelStyle: TextStyle(color: AppColors.deepRed),
                   labelText: 'البريد الإلكتروني',
-                  prefixIcon: const Icon(Icons.email),
+                  prefixIcon: const Icon(Icons.email, color: AppColors.deepRed),
                   // Use deep red for focused/border and gold accents
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -115,6 +137,7 @@ class _LoginPageState extends State<LoginPage> {
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
+                  floatingLabelStyle: TextStyle(color: AppColors.deepRed),
                   labelText: 'كلمة المرور',
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -150,19 +173,8 @@ class _LoginPageState extends State<LoginPage> {
                 },
               ),
               const SizedBox(height: 10),
+
               // نسيت كلمة المرور؟
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton(
-                  onPressed: () {
-                    // إضافة صفحة استعادة كلمة المرور لاحقًا
-                  },
-                  child: const Text('نسيت كلمة المرور؟'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.deepRed,
-                  ),
-                ),
-              ),
               const SizedBox(height: 30),
               // زر تسجيل الدخول
               BlocConsumer<AuthBloc, AuthState>(
