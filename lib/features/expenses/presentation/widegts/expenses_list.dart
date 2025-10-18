@@ -36,7 +36,10 @@ class ExpenseList extends StatelessWidget {
     );
   }
 
-  Widget _buildExpensesList(List<ExpenseEntity> expenses, BuildContext context) {
+  Widget _buildExpensesList(
+    List<ExpenseEntity> expenses,
+    BuildContext context,
+  ) {
     return ListView.builder(
       itemCount: expenses.length,
       padding: const EdgeInsets.only(bottom: 80),
@@ -46,7 +49,6 @@ class ExpenseList extends StatelessWidget {
           expense: expense,
           onDelete: () => _deleteExpense(context, expense),
           onTap: () => _showExpenseDetails(context, expense),
-          onGeneratePdf: () => _generateSingleExpensePdf(context, expense),
         );
       },
     );
@@ -72,11 +74,7 @@ class ExpenseList extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red,
-            ),
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             const Text(
               'حدث خطأ',
@@ -110,11 +108,7 @@ class ExpenseList extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.money_off,
-            size: 80,
-            color: Colors.grey.shade400,
-          ),
+          Icon(Icons.money_off, size: 80, color: Colors.grey.shade400),
           const SizedBox(height: 16),
           const Text(
             'لا توجد تكاليف',
@@ -127,10 +121,7 @@ class ExpenseList extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'انقر على زر + لإضافة تكلفة جديدة',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
           ),
         ],
       ),
