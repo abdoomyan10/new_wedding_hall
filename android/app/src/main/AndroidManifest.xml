@@ -12,7 +12,7 @@
 
     <application
 
-        android:label="new_wedding_hall"
+        android:label="MOZHELA"
 
         android:name="${applicationName}"
 
