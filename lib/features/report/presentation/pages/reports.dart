@@ -19,10 +19,11 @@ class ReportsPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => getIt<ReportCubit>()..loadDailyReports(),
       child: Scaffold(
+        backgroundColor: AppColors.paleGold.withOpacity(0.1),
         appBar: AppBar(
           title: const Text('التقارير'),
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.white,
+          backgroundColor: AppColors.deepRed,
+          foregroundColor: AppColors.paleGold,
           elevation: 0,
           actions: [
             IconButton(

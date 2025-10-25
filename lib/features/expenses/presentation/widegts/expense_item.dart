@@ -24,9 +24,7 @@ class ExpenseItem extends StatelessWidget {
           expense.description,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(
-          '${expense.category} - ${_formatDate(expense.date)}',
-        ),
+        subtitle: Text('${expense.category} - ${_formatDate(expense.date)}'),
         trailing: _buildTrailingButtons(),
         onTap: onTap,
       ),

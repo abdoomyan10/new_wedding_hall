@@ -2,16 +2,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 import '../../domain/entities/expense_entity.dart';
 import '../cubit/expense_cubit.dart';
 
 class ExpenseDetailsDialog extends StatelessWidget {
   final ExpenseEntity expense;
 
-  const ExpenseDetailsDialog({
-    super.key,
-    required this.expense,
-  });
+  const ExpenseDetailsDialog({super.key, required this.expense});
 
   @override
   Widget build(BuildContext context) {
@@ -42,18 +40,19 @@ class ExpenseDetailsDialog extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
-        const Icon(Icons.receipt, color: Colors.blue, size: 28),
+        const Icon(Icons.receipt, color: AppColors.deepRed, size: 28),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             'تفاصيل التكلفة',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Colors.blue.shade700,
+              color: AppColors.deepRed,
             ),
           ),
         ),
         IconButton(
+          style: IconButton.styleFrom(foregroundColor: AppColors.deepRed),
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
@@ -67,12 +66,15 @@ class ExpenseDetailsDialog extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: AppColors.deepRed),
       ),
       child: Column(
         children: [
           _buildDetailRow('الوصف:', expense.description),
-          _buildDetailRow('المبلغ:', '${expense.amount.toStringAsFixed(2)} ر.س'),
+          _buildDetailRow(
+            'المبلغ:',
+            '${expense.amount.toStringAsFixed(2)} ر.س',
+          ),
           _buildDetailRow('اسم العامل:', expense.workerName),
           _buildDetailRow('الفئة:', expense.category),
           _buildDetailRow('تاريخ التكلفة:', _formatDate(expense.date)),
@@ -95,17 +97,12 @@ class ExpenseDetailsDialog extends StatelessWidget {
               label,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                color: AppColors.gold,
               ),
             ),
           ),
           const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14),
-            ),
-          ),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
         ],
       ),
     );
@@ -122,12 +119,14 @@ class ExpenseDetailsDialog extends StatelessWidget {
                 label: const Text('حفظ PDF'),
                 onPressed: () {
                   Navigator.pop(context);
-                  context.read<ExpenseCubit>().generateAndSaveSingleExpensePdf(expense);
+                  context.read<ExpenseCubit>().generateAndSaveSingleExpensePdf(
+                    expense,
+                  );
                 },
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.green,
+                  foregroundColor: AppColors.gold,
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  side: BorderSide(color: Colors.green.shade700),
+                  side: BorderSide(color: AppColors.deepRed),
                 ),
               ),
             ),
@@ -135,14 +134,19 @@ class ExpenseDetailsDialog extends StatelessWidget {
             Expanded(
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.print),
-                label: const Text('طباعة'),
+                label: const Text(
+                  'طباعة',
+                  style: TextStyle(color: AppColors.gold),
+                ),
                 onPressed: () {
                   Navigator.pop(context);
-                  context.read<ExpenseCubit>().generateSingleExpensePdf(expense);
+                  context.read<ExpenseCubit>().generateSingleExpensePdf(
+                    expense,
+                  );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade700,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.deepRed,
+                  foregroundColor: AppColors.gold,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
@@ -154,13 +158,14 @@ class ExpenseDetailsDialog extends StatelessWidget {
           width: double.infinity,
           child: TextButton.icon(
             icon: const Icon(Icons.share),
-            label: const Text('مشاركة'),
+            label: const Text(
+              'مشاركة',
+              style: TextStyle(color: AppColors.deepRed),
+            ),
             onPressed: () {
               _showShareOptions(context);
             },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.orange.shade700,
-            ),
+            style: TextButton.styleFrom(foregroundColor: AppColors.deepRed),
           ),
         ),
       ],
@@ -169,6 +174,7 @@ class ExpenseDetailsDialog extends StatelessWidget {
 
   void _showShareOptions(BuildContext context) {
     showModalBottomSheet(
+      backgroundColor: AppColors.paleGold,
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -182,7 +188,7 @@ class ExpenseDetailsDialog extends StatelessWidget {
               'خيارات المشاركة',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: Colors.blue.shade700,
+                color: AppColors.deepRed,
               ),
             ),
             const SizedBox(height: 16),
@@ -195,9 +201,11 @@ class ExpenseDetailsDialog extends StatelessWidget {
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.pop(context);
-                    context.read<ExpenseCubit>().generateAndSaveSingleExpensePdf(expense);
+                    context
+                        .read<ExpenseCubit>()
+                        .generateAndSaveSingleExpensePdf(expense);
                   },
-                  color: Colors.green,
+                  color: AppColors.deepRed,
                 ),
                 _buildShareOption(
                   icon: Icons.print,
@@ -205,9 +213,11 @@ class ExpenseDetailsDialog extends StatelessWidget {
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.pop(context);
-                    context.read<ExpenseCubit>().generateSingleExpensePdf(expense);
+                    context.read<ExpenseCubit>().generateSingleExpensePdf(
+                      expense,
+                    );
                   },
-                  color: Colors.blue,
+                  color: AppColors.deepRed,
                 ),
                 _buildShareOption(
                   icon: Icons.content_copy,
@@ -216,7 +226,7 @@ class ExpenseDetailsDialog extends StatelessWidget {
                     _copyExpenseDetails(context);
                     Navigator.pop(context);
                   },
-                  color: Colors.purple,
+                  color: AppColors.deepRed,
                 ),
               ],
             ),
@@ -225,7 +235,10 @@ class ExpenseDetailsDialog extends StatelessWidget {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('إلغاء'),
+                child: const Text(
+                  'إلغاء',
+                  style: TextStyle(color: AppColors.deepRed),
+                ),
               ),
             ),
           ],
@@ -242,11 +255,7 @@ class ExpenseDetailsDialog extends StatelessWidget {
   }) {
     return Column(
       children: [
-        IconButton(
-          icon: Icon(icon, size: 32),
-          color: color,
-          onPressed: onTap,
-        ),
+        IconButton(icon: Icon(icon, size: 32), color: color, onPressed: onTap),
         const SizedBox(height: 4),
         Text(
           label,
@@ -261,7 +270,8 @@ class ExpenseDetailsDialog extends StatelessWidget {
   }
 
   void _copyExpenseDetails(BuildContext context) {
-    final details = '''
+    final details =
+        '''
 تفاصيل التكلفة:
 الوصف: ${expense.description}
 المبلغ: ${expense.amount.toStringAsFixed(2)} ر.س
@@ -277,8 +287,11 @@ class ExpenseDetailsDialog extends StatelessWidget {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('تم نسخ تفاصيل التكلفة'),
-        backgroundColor: Colors.green,
+        content: const Text(
+          'تم نسخ تفاصيل التكلفة',
+          style: TextStyle(color: AppColors.gold),
+        ),
+        backgroundColor: AppColors.deepRed,
         behavior: SnackBarBehavior.floating,
       ),
     );

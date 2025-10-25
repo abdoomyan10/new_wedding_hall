@@ -59,7 +59,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.paleGold,
+      backgroundColor: AppColors.paleGold.withOpacity(0.1),
       appBar: AppBar(
         backgroundColor: AppColors.deepRed,
         title: const Text('تسجيل الدخول', style: TextStyle()),

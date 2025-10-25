@@ -118,7 +118,7 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.paleGold,
+      backgroundColor: AppColors.paleGold.withOpacity(0.1),
       appBar: AppBar(
         title: const Text('إنشاء حساب جديد'),
         centerTitle: true,

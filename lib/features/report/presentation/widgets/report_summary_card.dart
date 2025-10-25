@@ -7,8 +7,6 @@ import '../../domain/entities/report_summary_entity.dart';
 import '../cubit/report_cubit.dart';
 import '../cubit/report_state.dart';
 
-
-
 class ReportSummaryCard extends StatelessWidget {
   const ReportSummaryCard({super.key});
 
@@ -75,7 +73,7 @@ class ReportSummaryCard extends StatelessWidget {
               SummaryItem(
                 value: '${summary.netProfit.toStringAsFixed(0)} ر.س',
                 label: 'صافي الربح',
-                color: AppColors.paleGold,
+                color: AppColors.gold,
               ),
             ],
           ),
@@ -87,7 +85,7 @@ class ReportSummaryCard extends StatelessWidget {
               SummaryItem(
                 value: '${summary.totalExpenses.toStringAsFixed(0)} ر.س',
                 label: 'إجمالي المصروفات',
-                color: AppColors.deepRed,
+                color: AppColors.gold,
               ),
               SummaryItem(
                 value: '${summary.profitMargin.toStringAsFixed(1)}%',
@@ -108,19 +106,19 @@ class ReportSummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.gray100,
+        color: AppColors.paleGold.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.event, size: 16, color: AppColors.gray500),
+          const Icon(Icons.event, size: 16, color: AppColors.gold),
           const SizedBox(width: 8),
           Text(
             '$totalEvents    عدد حفلات      ',
             style: const TextStyle(
               fontSize: 14,
-              color: AppColors.gray500,
+              color: AppColors.deepRed,
               fontWeight: FontWeight.bold,
             ),
           ),
