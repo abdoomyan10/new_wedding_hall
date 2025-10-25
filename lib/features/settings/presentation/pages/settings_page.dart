@@ -13,7 +13,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.paleGold,
+      backgroundColor: AppColors.paleGold.withOpacity(0.1),
       appBar: AppBar(
         title: Text('الإعدادات'),
         backgroundColor: AppColors.deepRed,

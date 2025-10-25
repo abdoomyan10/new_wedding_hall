@@ -33,14 +33,22 @@ class PaymentStatsSection extends StatelessWidget {
                     StatItem(
                       value: '${stats.totalReceived.toStringAsFixed(0)} ر.س',
                       label: 'إجمالي المستلم',
+                      labelStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.deepRed,
+                      ),
                       icon: Icons.check_circle,
                       color: AppColors.gold,
                     ),
                     StatItem(
                       value: '${stats.totalPending.toStringAsFixed(0)} ر.س',
                       label: 'المدفوعات المعلقة',
+                      labelStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.deepRed,
+                      ),
                       icon: Icons.pending,
-                      color: AppColors.deepRed,
+                      color: AppColors.gold,
                     ),
                   ],
                 ),
@@ -52,12 +60,20 @@ class PaymentStatsSection extends StatelessWidget {
                     StatItem(
                       value: stats.completedPayments.toString(),
                       label: 'مدفوعات مكتملة',
+                      labelStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.deepRed,
+                      ),
                       icon: Icons.payment,
                       color: AppColors.paleGold,
                     ),
                     StatItem(
                       value: stats.pendingPayments.toString(),
                       label: 'مدفوعات معلقة',
+                      labelStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.deepRed,
+                      ),
                       icon: Icons.schedule,
                       color: AppColors.gold,
                     ),
@@ -77,7 +93,7 @@ class PaymentStatsSection extends StatelessWidget {
                   'نسبة الإنجاز: ${((stats.totalReceived / stats.totalExpected) * 100).toStringAsFixed(1)}%',
                   style: const TextStyle(
                     fontSize: 12,
-                    color: AppColors.gray500,
+                    color: AppColors.deepRed,
                   ),
                 ),
               ],

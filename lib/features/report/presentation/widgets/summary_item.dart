@@ -30,10 +30,7 @@ class SummaryItem extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppColors.gray500,
-          ),
+          style: const TextStyle(fontSize: 12, color: AppColors.deepRed),
         ),
       ],
     );

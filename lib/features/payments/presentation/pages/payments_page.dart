@@ -55,36 +55,36 @@ class _PaymentsPageState extends State<PaymentsPage> {
             SliverAppBar(
               title: _showSearchBar
                   ? TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'ابحث في المدفوعات...',
-                  hintStyle: const TextStyle(color: AppColors.gray500),
-                  border: InputBorder.none,
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      setState(() {
-                        _showSearchBar = false;
-                        _searchController.clear();
-                      });
-                    },
-                  ),
-                ),
-                style: const TextStyle(color: AppColors.black),
-                onChanged: (value) {
-                  // TODO: تطبيق البحث
-                  context.read<PaymentCubit>().searchPayments(value);
-                },
-              )
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'ابحث في المدفوعات...',
+                        hintStyle: const TextStyle(color: AppColors.gray500),
+                        border: InputBorder.none,
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () {
+                            setState(() {
+                              _showSearchBar = false;
+                              _searchController.clear();
+                            });
+                          },
+                        ),
+                      ),
+                      style: const TextStyle(color: AppColors.black),
+                      onChanged: (value) {
+                        // TODO: تطبيق البحث
+                        context.read<PaymentCubit>().searchPayments(value);
+                      },
+                    )
                   : const Text(
-                'إدارة المدفوعات',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: AppColors.white,
-                ),
-              ),
-              backgroundColor: AppColors.primary,
+                      'إدارة المدفوعات',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: AppColors.paleGold,
+                      ),
+                    ),
+              backgroundColor: AppColors.deepRed,
               floating: true,
               snap: true,
               pinned: true,
@@ -93,35 +93,29 @@ class _PaymentsPageState extends State<PaymentsPage> {
               actions: [
                 if (!_showSearchBar)
                   IconButton(
-                    icon: const Icon(Icons.search, color: AppColors.white),
+                    icon: const Icon(Icons.search, color: AppColors.paleGold),
                     onPressed: () {
                       setState(() {
                         _showSearchBar = true;
                       });
                     },
                   ),
-                IconButton(
-                  icon: const Icon(Icons.filter_list, color: AppColors.white),
-                  onPressed: _showFilterDialog,
-                ),
-                const SizedBox(width: 8),
               ],
             ),
 
             // قسم الإحصائيات
-            const SliverToBoxAdapter(
-              child: PaymentStatsSection(),
-            ),
+            const SliverToBoxAdapter(child: PaymentStatsSection()),
 
             // التصفية السريعة
-            const SliverToBoxAdapter(
-              child: PaymentFilters(),
-            ),
+            const SliverToBoxAdapter(child: PaymentFilters()),
 
             // عنوان قائمة المدفوعات
             SliverToBoxAdapter(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 color: AppColors.white,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -131,7 +125,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: AppColors.black,
+                        color: AppColors.deepRed,
                       ),
                     ),
                     BlocBuilder<PaymentCubit, PaymentState>(
@@ -158,8 +152,8 @@ class _PaymentsPageState extends State<PaymentsPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddPaymentDialog,
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
+        backgroundColor: AppColors.deepRed,
+        foregroundColor: AppColors.paleGold,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: const Icon(Icons.add, size: 28),
       ),
@@ -196,8 +190,8 @@ class _PaymentsPageState extends State<PaymentsPage> {
                 icon: const Icon(Icons.download, size: 18),
                 label: const Text('تصدير'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  side: const BorderSide(color: AppColors.primary),
+                  foregroundColor: AppColors.gold,
+                  side: const BorderSide(color: AppColors.deepRed),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -216,12 +210,12 @@ class _PaymentsPageState extends State<PaymentsPage> {
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.deepRed.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.arrow_upward,
-                    color: AppColors.primary,
+                    color: AppColors.gold,
                     size: 20,
                   ),
                 ),
@@ -251,23 +245,41 @@ class _PaymentsPageState extends State<PaymentsPage> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
-                  color: AppColors.black,
+                  color: AppColors.deepRed,
                 ),
               ),
               const SizedBox(height: 16),
               ListTile(
-                leading: const Icon(Icons.picture_as_pdf, color: AppColors.error),
-                title: const Text('تصدير كـ PDF'),
-                subtitle: const Text('تصدير قائمة المدفوعات بصيغة PDF'),
+                leading: const Icon(
+                  Icons.picture_as_pdf,
+                  color: AppColors.deepRed,
+                ),
+                title: const Text(
+                  'تصدير كـ PDF',
+                  style: TextStyle(color: AppColors.gold),
+                ),
+                subtitle: const Text(
+                  'تصدير قائمة المدفوعات بصيغة PDF',
+                  style: TextStyle(color: AppColors.gold),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   // TODO: تطبيق تصدير PDF
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.table_chart, color: AppColors.success),
-                title: const Text('تصدير كـ Excel'),
-                subtitle: const Text('تصدير البيانات بصيغة Excel'),
+                leading: const Icon(
+                  Icons.table_chart,
+                  color: AppColors.deepRed,
+                ),
+                title: const Text(
+                  'تصدير كـ Excel',
+                  style: TextStyle(color: AppColors.gold),
+                ),
+                subtitle: const Text(
+                  'تصدير البيانات بصيغة Excel',
+                  style: TextStyle(color: AppColors.gold),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   // TODO: تطبيق تصدير Excel
@@ -276,7 +288,10 @@ class _PaymentsPageState extends State<PaymentsPage> {
               const SizedBox(height: 8),
               OutlinedButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('إلغاء'),
+                child: const Text(
+                  'إلغاء',
+                  style: TextStyle(color: AppColors.deepRed),
+                ),
               ),
             ],
           ),

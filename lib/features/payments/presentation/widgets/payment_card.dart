@@ -34,17 +34,22 @@ class PaymentCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.black,
+                      color: AppColors.deepRed,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: payment.statusColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: payment.statusColor.withOpacity(0.3)),
+                    border: Border.all(
+                      color: payment.statusColor.withOpacity(0.3),
+                    ),
                   ),
                   child: Text(
                     payment.statusText,
@@ -62,10 +67,7 @@ class PaymentCard extends StatelessWidget {
             // الصف الثاني: اسم الحفلة
             Text(
               payment.eventName,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.gray500,
-              ),
+              style: const TextStyle(fontSize: 14, color: AppColors.deepRed),
             ),
             const SizedBox(height: 12),
 
@@ -78,18 +80,22 @@ class PaymentCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                    color: AppColors.deepRed,
                   ),
                 ),
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today, size: 16, color: AppColors.gray500),
+                    const Icon(
+                      Icons.calendar_today,
+                      size: 16,
+                      color: AppColors.gold,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       DateFormat('yyyy-MM-dd').format(payment.paymentDate),
                       style: const TextStyle(
                         fontSize: 14,
-                        color: AppColors.gray500,
+                        color: AppColors.gold,
                       ),
                     ),
                   ],
@@ -103,7 +109,10 @@ class PaymentCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.gray100,
                     borderRadius: BorderRadius.circular(8),
@@ -112,7 +121,7 @@ class PaymentCard extends StatelessWidget {
                     payment.paymentMethodText,
                     style: const TextStyle(
                       fontSize: 12,
-                      color: AppColors.gray500,
+                      color: AppColors.deepRed,
                     ),
                   ),
                 ),
@@ -122,7 +131,7 @@ class PaymentCard extends StatelessWidget {
                       payment.notes,
                       style: const TextStyle(
                         fontSize: 12,
-                        color: AppColors.gray500,
+                        color: AppColors.gold,
                       ),
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.end,
@@ -139,7 +148,7 @@ class PaymentCard extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.edit, size: 18),
                   onPressed: () => _showEditPaymentDialog(context, payment),
-                  color: AppColors.info,
+                  color: AppColors.gold,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
