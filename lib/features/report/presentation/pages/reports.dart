@@ -20,27 +20,19 @@ class ReportsPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => getIt<ReportCubit>()..loadDailyReports(),
       child: Scaffold(
-        appBar: _buildAppBar(context),
-        body: const _ReportsBody(),
-        floatingActionButton: _buildFloatingActionButton(context),
-      ),
-    );
-  }
-
-  AppBar _buildAppBar(BuildContext context) {
-    return AppBar(
-      title: const Text(
-        'التقارير',
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-      ),
-      backgroundColor: Colors.blue.shade700,
-      foregroundColor: Colors.white,
-      elevation: 2,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.folder),
-          tooltip: 'التقارير المحفوظة',
-          onPressed: () => _navigateToSavedReports(context),
+        backgroundColor: AppColors.paleGold.withOpacity(0.1),
+        appBar: AppBar(
+          title: const Text('التقارير'),
+          backgroundColor: AppColors.deepRed,
+          foregroundColor: AppColors.paleGold,
+          elevation: 0,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.download),
+              onPressed: () => ExportReportsDialog.show(context),
+              tooltip: 'تصدير التقارير',
+            ),
+          ],
         ),
         BlocBuilder<ReportCubit, ReportState>(
           builder: (context, state) {

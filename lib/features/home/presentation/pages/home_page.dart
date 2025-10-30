@@ -1,6 +1,7 @@
 // features/home/presentation/pages/home_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 
 import '../../../../core/services/dependencies.dart';
 import '../../../../injection_container.dart';
@@ -15,7 +16,11 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => getIt<HomeCubit>()..loadHomeData(),
-      child: Scaffold(appBar: const HomeAppBar(), body: const _HomeBody()),
+      child: Scaffold(
+        backgroundColor: AppColors.paleGold.withOpacity(0.1),
+        appBar: const HomeAppBar(),
+        body: const _HomeBody(),
+      ),
     );
   }
 }

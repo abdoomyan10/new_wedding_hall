@@ -32,11 +32,11 @@ class _MainPageContent extends StatelessWidget {
         builder: (context, currentIndex) {
           return IndexedStack(
             index: currentIndex,
-            children: const [
-              HomePage(),
-              ReportsPage(),
-              PaymentsPage(),
-              ExpensesPage(),
+            children: [
+              const HomePage(),
+              const ReportsPage(),
+              const PaymentsPage(),
+              const ExpensesPage(),
               SettingsPage(),
             ],
           );

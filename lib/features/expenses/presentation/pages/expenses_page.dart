@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../cubit/expense_cubit.dart' show ExpenseCubit;
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
+import '../cubit/expense_cubit.dart';
 import '../widegts/add_expense_dialog.dart';
 import '../widegts/expenses_list.dart';
 import '../widegts/expenses_stats_card.dart';
@@ -16,6 +16,7 @@ class ExpensesPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => context.read<ExpenseCubit>()..loadExpenses(),
       child: Scaffold(
+        backgroundColor: AppColors.paleGold.withOpacity(0.1),
         appBar: _buildAppBar(context),
         body: const _ExpensesBody(),
         floatingActionButton: _buildFloatingActionButton(context),
@@ -27,13 +28,10 @@ class ExpensesPage extends StatelessWidget {
     return AppBar(
       title: const Text(
         'إدارة التكاليف',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 20,
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
       ),
-      backgroundColor: Colors.blue.shade700,
-      foregroundColor: Colors.white,
+      backgroundColor: AppColors.deepRed,
+      foregroundColor: AppColors.paleGold,
       elevation: 2,
       actions: [
         // زر التقارير المحفوظة
@@ -101,8 +99,8 @@ class ExpensesPage extends StatelessWidget {
   Widget _buildFloatingActionButton(BuildContext context) {
     return FloatingActionButton(
       onPressed: () => _showAddExpenseDialog(context),
-      backgroundColor: Colors.blue.shade700,
-      foregroundColor: Colors.white,
+      backgroundColor: AppColors.deepRed,
+      foregroundColor: AppColors.paleGold,
       child: const Icon(Icons.add, size: 28),
     );
   }
@@ -182,7 +180,7 @@ class _ExpensesListHeader extends StatelessWidget {
               'التكلفة',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.grey,
+                color: AppColors.gold,
               ),
             ),
           ),
@@ -192,7 +190,7 @@ class _ExpensesListHeader extends StatelessWidget {
               'المبلغ',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.grey,
+                color: AppColors.gold,
               ),
             ),
           ),
@@ -202,7 +200,7 @@ class _ExpensesListHeader extends StatelessWidget {
               'التاريخ',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.grey,
+                color: AppColors.gold,
               ),
             ),
           ),

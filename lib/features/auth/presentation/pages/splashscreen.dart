@@ -42,17 +42,13 @@ class _SplashScreenState extends State<SplashScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // شعار الصالة
+                // شعار الصالة (يملأ الحاوية بشكل دائري، مع ظل، وخلفية شفافة)
                 Container(
                   width: 150,
                   height: 150,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [AppColors.gold, AppColors.paleGold],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    color: Colors.transparent,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.3),
@@ -61,12 +57,12 @@ class _SplashScreenState extends State<SplashScreen> {
                       ),
                     ],
                   ),
-                  child: Center(
+                  child: ClipOval(
                     child: Image.asset(
                       'assets/mozhela.png',
-                      width: 84,
-                      height: 84,
-                      fit: BoxFit.contain,
+                      width: 150,
+                      height: 150,
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
@@ -91,7 +87,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   'إدارة صالة الأعراس باحترافية',
                   style: TextStyle(
                     fontSize: 18,
-                    color: AppColors.paleGold.withOpacity(0.95),
+                    color: Colors.white,
                     fontWeight: FontWeight.w300,
                   ),
                   textAlign: TextAlign.center,

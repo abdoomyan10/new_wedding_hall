@@ -1,8 +1,8 @@
-
 // features/reports/presentation/widgets/report_details_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 import '../../domain/entities/report_entity.dart';
 import '../cubit/report_cubit.dart';
 
@@ -40,18 +40,19 @@ class ReportDetailsDialog extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
-        const Icon(Icons.analytics, color: Colors.blue, size: 28),
+        const Icon(Icons.analytics, color: AppColors.deepRed, size: 28),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             'تفاصيل التقرير',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Colors.blue.shade700,
+              color: AppColors.deepRed,
             ),
           ),
         ),
         IconButton(
+          color: AppColors.deepRed,
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
@@ -71,12 +72,27 @@ class ReportDetailsDialog extends StatelessWidget {
         children: [
           _buildDetailRow('الفترة:', _getPeriodText(period)),
           _buildDetailRow('التاريخ:', _formatDate(report.date)),
-          _buildDetailRow('الإيرادات:', '${report.totalRevenue.toStringAsFixed(2)} ر.س'),
-          _buildDetailRow('المصروفات:', '${report.expenses.toStringAsFixed(2)} ر.س'),
-          _buildDetailRow('صافي الربح:', '${report.netProfit.toStringAsFixed(2)} ر.س'),
-          _buildDetailRow('المدفوعات:', '${report.totalPayments.toStringAsFixed(2)} ر.س'),
+          _buildDetailRow(
+            'الإيرادات:',
+            '${report.totalRevenue.toStringAsFixed(2)} ر.س',
+          ),
+          _buildDetailRow(
+            'المصروفات:',
+            '${report.expenses.toStringAsFixed(2)} ر.س',
+          ),
+          _buildDetailRow(
+            'صافي الربح:',
+            '${report.netProfit.toStringAsFixed(2)} ر.س',
+          ),
+          _buildDetailRow(
+            'المدفوعات:',
+            '${report.totalPayments.toStringAsFixed(2)} ر.س',
+          ),
           _buildDetailRow('عدد الحفلات:', report.eventsCount.toString()),
-          _buildDetailRow('هامش الربح:', '${report.profitMargin.toStringAsFixed(1)}%'),
+          _buildDetailRow(
+            'هامش الربح:',
+            '${report.profitMargin.toStringAsFixed(1)}%',
+          ),
           _buildDetailRow('المعرف:', report.id),
         ],
       ),
@@ -95,17 +111,12 @@ class ReportDetailsDialog extends StatelessWidget {
               label,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                color: AppColors.gold,
               ),
             ),
           ),
           const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14),
-            ),
-          ),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
         ],
       ),
     );
@@ -119,15 +130,20 @@ class ReportDetailsDialog extends StatelessWidget {
             Expanded(
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.save),
-                label: const Text('حفظ PDF'),
+                label: const Text(
+                  'حفظ PDF',
+                  style: TextStyle(color: AppColors.gold),
+                ),
                 onPressed: () {
                   Navigator.pop(context);
-                  context.read<ReportCubit>().generateAndSaveSingleReportPdf(report);
+                  context.read<ReportCubit>().generateAndSaveSingleReportPdf(
+                    report,
+                  );
                 },
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.green,
+                  foregroundColor: AppColors.gold,
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  side: BorderSide(color: Colors.green.shade700),
+                  side: BorderSide(color: AppColors.deepRed),
                 ),
               ),
             ),
@@ -135,14 +151,17 @@ class ReportDetailsDialog extends StatelessWidget {
             Expanded(
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.print),
-                label: const Text('طباعة'),
+                label: const Text(
+                  'طباعة',
+                  style: TextStyle(color: AppColors.gold),
+                ),
                 onPressed: () {
                   Navigator.pop(context);
                   context.read<ReportCubit>().generateSingleReportPdf(report);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade700,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.deepRed,
+                  foregroundColor: AppColors.gold,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
@@ -155,11 +174,16 @@ class ReportDetailsDialog extends StatelessWidget {
 
   String _getPeriodText(String period) {
     switch (period) {
-      case 'daily': return 'يومي';
-      case 'weekly': return 'أسبوعي';
-      case 'monthly': return 'شهري';
-      case 'yearly': return 'سنوي';
-      default: return period;
+      case 'daily':
+        return 'يومي';
+      case 'weekly':
+        return 'أسبوعي';
+      case 'monthly':
+        return 'شهري';
+      case 'yearly':
+        return 'سنوي';
+      default:
+        return period;
     }
   }
 

@@ -72,10 +72,10 @@ class ExpenseList extends StatelessWidget {
 
   }
 
-
-
-  Widget _buildExpensesList(List<ExpenseEntity> expenses, BuildContext context) {
-
+  Widget _buildExpensesList(
+    List<ExpenseEntity> expenses,
+    BuildContext context,
+  ) {
     return ListView.builder(
 
       itemCount: expenses.length,
@@ -93,9 +93,6 @@ class ExpenseList extends StatelessWidget {
           onDelete: () => _deleteExpense(context, expense),
 
           onTap: () => _showExpenseDetails(context, expense),
-
-          onGeneratePdf: () => _generateSingleExpensePdf(context, expense),
-
         );
 
       },
@@ -145,17 +142,7 @@ class ExpenseList extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
 
           children: [
-
-            const Icon(
-
-              Icons.error_outline,
-
-              size: 64,
-
-              color: Colors.red,
-
-            ),
-
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
 
             const Text(
@@ -221,17 +208,7 @@ class ExpenseList extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
 
         children: [
-
-          Icon(
-
-            Icons.money_off,
-
-            size: 80,
-
-            color: Colors.grey.shade400,
-
-          ),
-
+          Icon(Icons.money_off, size: 80, color: Colors.grey.shade400),
           const SizedBox(height: 16),
 
           const Text(
@@ -255,15 +232,7 @@ class ExpenseList extends StatelessWidget {
           Text(
 
             'انقر على زر + لإضافة تكلفة جديدة',
-
-            style: TextStyle(
-
-              fontSize: 14,
-
-              color: Colors.grey.shade600,
-
-            ),
-
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
           ),
 
         ],
@@ -303,5 +272,4 @@ class ExpenseList extends StatelessWidget {
     context.read<ExpenseCubit>().generateSingleExpensePdf(expense);
 
   }
-
 }

@@ -21,21 +21,113 @@ class PaymentCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () {
-          print('🎯 تم النقر على البطاقة: ${payment.clientName}');
-          _navigateToDetailsPage(context);
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // الصف الأول: اسم العميل وحالة الدفع
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // الصف الأول: اسم العميل وحالة الدفع
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    payment.clientName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.deepRed,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: payment.statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: payment.statusColor.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Text(
+                    payment.statusText,
+                    style: TextStyle(
+                      color: payment.statusColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // الصف الثاني: اسم الحفلة
+            Text(
+              payment.eventName,
+              style: const TextStyle(fontSize: 14, color: AppColors.deepRed),
+            ),
+            const SizedBox(height: 12),
+
+            // الصف الثالث: المبلغ وتاريخ الدفع
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${payment.amount.toStringAsFixed(0)} ر.س',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.deepRed,
+                  ),
+                ),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today,
+                      size: 16,
+                      color: AppColors.gold,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      DateFormat('yyyy-MM-dd').format(payment.paymentDate),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.gold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // الصف الرابع: طريقة الدفع والملاحظات
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.gray100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    payment.paymentMethodText,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.deepRed,
+                    ),
+                  ),
+                ),
+                if (payment.notes.isNotEmpty)
                   Expanded(
                     child: Text(
                       payment.clientName,
@@ -120,7 +212,7 @@ class PaymentCard extends StatelessWidget {
                       _getPaymentMethodText(payment.paymentMethod),
                       style: const TextStyle(
                         fontSize: 12,
-                        color: AppColors.gray500,
+                        color: AppColors.gold,
                       ),
                     ),
                   ),
@@ -139,11 +231,29 @@ class PaymentCard extends StatelessWidget {
                 ],
               ),
 
-              // زر الإجراءات
-              const SizedBox(height: 12),
-              _buildActionButtons(context),
-            ],
-          ),
+            // زر الإجراءات
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit, size: 18),
+                  onPressed: () => _showEditPaymentDialog(context, payment),
+                  color: AppColors.gold,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.delete, size: 18),
+                  onPressed: () => _showDeleteConfirmation(context, payment.id),
+                  color: AppColors.error,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -331,45 +441,5 @@ class PaymentCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  // دوال مساعدة
-  String _getStatusText(String status) {
-    switch (status) {
-      case 'completed':
-        return 'مكتمل';
-      case 'pending':
-        return 'معلق';
-      case 'failed':
-        return 'فاشل';
-      default:
-        return status;
-    }
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'completed':
-        return AppColors.success;
-      case 'pending':
-        return AppColors.warning;
-      case 'failed':
-        return AppColors.error;
-      default:
-        return AppColors.gray500;
-    }
-  }
-
-  String _getPaymentMethodText(String paymentMethod) {
-    switch (paymentMethod) {
-      case 'cash':
-        return 'نقدي';
-      case 'bank_transfer':
-        return 'تحويل بنكي';
-      case 'credit_card':
-        return 'بطاقة ائتمان';
-      default:
-        return paymentMethod;
-    }
   }
 }

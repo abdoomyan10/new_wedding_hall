@@ -62,7 +62,12 @@ class ExpenseStatsCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String title, String value, Color color, IconData icon) {
+  Widget _buildStatItem(
+    String title,
+    String value,
+    Color color,
+    IconData icon,
+  ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -79,18 +84,11 @@ class ExpenseStatsCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: color,
-              size: 24,
-            ),
+            Icon(icon, color: color, size: 24),
             const SizedBox(height: 8),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),

@@ -29,10 +29,7 @@ class ReportMetric extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 10,
-            color: AppColors.gray500,
-          ),
+          style: const TextStyle(fontSize: 10, color: AppColors.deepRed),
         ),
       ],
     );

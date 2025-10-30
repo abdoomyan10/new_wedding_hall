@@ -14,6 +14,7 @@ class StatItem extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.color,
+    required TextStyle labelStyle,
   });
 
   @override
@@ -39,10 +40,7 @@ class StatItem extends StatelessWidget {
         ),
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppColors.gray500,
-          ),
+          style: const TextStyle(fontSize: 12, color: AppColors.deepRed),
         ),
       ],
     );

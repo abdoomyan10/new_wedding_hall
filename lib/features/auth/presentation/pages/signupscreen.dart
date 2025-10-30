@@ -118,10 +118,11 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.paleGold.withOpacity(0.1),
       appBar: AppBar(
         title: const Text('إنشاء حساب جديد'),
         centerTitle: true,
-        backgroundColor: AppColors.gold,
+        backgroundColor: AppColors.deepRed,
         foregroundColor: AppColors.paleGold,
       ),
       body: SingleChildScrollView(
@@ -137,6 +138,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 controller: _nameController,
                 textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
+                  floatingLabelStyle: TextStyle(color: AppColors.deepRed),
                   labelText: 'الاسم الكامل',
                   prefixIcon: Icon(Icons.person, color: AppColors.deepRed),
                   enabledBorder: OutlineInputBorder(
@@ -165,6 +167,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
+                  floatingLabelStyle: TextStyle(color: AppColors.deepRed),
                   labelText: 'البريد الإلكتروني',
                   prefixIcon: Icon(Icons.email, color: AppColors.deepRed),
                   enabledBorder: OutlineInputBorder(
@@ -197,6 +200,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
+                  floatingLabelStyle: TextStyle(color: AppColors.deepRed),
                   labelText: 'كلمة المرور',
                   prefixIcon: Icon(Icons.lock, color: AppColors.deepRed),
                   suffixIcon: IconButton(
@@ -238,6 +242,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 controller: _confirmPasswordController,
                 obscureText: _obscureConfirmPassword,
                 decoration: InputDecoration(
+                  floatingLabelStyle: TextStyle(color: AppColors.deepRed),
                   labelText: 'تأكيد كلمة المرور',
                   prefixIcon: Icon(
                     Icons.lock_outline,

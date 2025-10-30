@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:new_wedding_hall/core/constants/app_colors.dart';
 
 import '../../domain/entities/payment_entity.dart';
 import '../cubit/payment_cubit.dart';
@@ -62,7 +63,10 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
     final isEditing = widget.paymentToEdit != null;
 
     return AlertDialog(
-      title: Text(isEditing ? 'تعديل الدفعة' : 'إضافة دفعة جديدة'),
+      title: Text(
+        isEditing ? 'تعديل الدفعة' : 'إضافة دفعة جديدة',
+        style: TextStyle(color: AppColors.deepRed),
+      ),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -72,6 +76,13 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
               TextFormField(
                 controller: _clientNameController,
                 decoration: const InputDecoration(
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
+                  floatingLabelStyle: TextStyle(color: AppColors.gold),
                   labelText: 'اسم العميل',
                   border: OutlineInputBorder(),
                 ),
@@ -86,6 +97,13 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
               TextFormField(
                 controller: _eventNameController,
                 decoration: const InputDecoration(
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
+                  floatingLabelStyle: TextStyle(color: AppColors.gold),
                   labelText: 'اسم الحفلة',
                   border: OutlineInputBorder(),
                 ),
@@ -101,6 +119,13 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
                 controller: _amountController,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
+                  floatingLabelStyle: TextStyle(color: AppColors.gold),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
                   labelText: 'المبلغ (ر.س)',
                   border: OutlineInputBorder(),
                 ),
@@ -131,6 +156,13 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
                   }
                 },
                 decoration: const InputDecoration(
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
+                  floatingLabelStyle: TextStyle(color: AppColors.gold),
                   labelText: 'طريقة الدفع',
                   border: OutlineInputBorder(),
                 ),
@@ -152,6 +184,13 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
                   }
                 },
                 decoration: const InputDecoration(
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
+                  floatingLabelStyle: TextStyle(color: AppColors.gold),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
                   labelText: 'حالة الدفع',
                   border: OutlineInputBorder(),
                 ),
@@ -161,6 +200,13 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
                 controller: _notesController,
                 maxLines: 2,
                 decoration: const InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
+                  floatingLabelStyle: TextStyle(color: AppColors.gold),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.deepRed),
+                  ),
                   labelText: 'ملاحظات (اختياري)',
                   border: OutlineInputBorder(),
                 ),
@@ -191,14 +237,23 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('إلغاء'),
+          child: const Text('إلغاء', style: TextStyle(color: AppColors.gold)),
         ),
         ElevatedButton(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all<Color>(
+              AppColors.deepRed,
+            ),
+          ),
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               final payment = PaymentEntity(
-                id: isEditing ? widget.paymentToEdit!.id : DateTime.now().millisecondsSinceEpoch.toString(),
-                eventId: isEditing ? widget.paymentToEdit!.eventId : 'event_${DateTime.now().millisecondsSinceEpoch}',
+                id: isEditing
+                    ? widget.paymentToEdit!.id
+                    : DateTime.now().millisecondsSinceEpoch.toString(),
+                eventId: isEditing
+                    ? widget.paymentToEdit!.eventId
+                    : 'event_${DateTime.now().millisecondsSinceEpoch}',
                 eventName: _eventNameController.text,
                 clientName: _clientNameController.text,
                 amount: double.parse(_amountController.text),
@@ -206,7 +261,9 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
                 paymentMethod: _selectedPaymentMethod,
                 status: _selectedStatus,
                 notes: _notesController.text,
-                createdAt: isEditing ? widget.paymentToEdit!.createdAt : DateTime.now(),
+                createdAt: isEditing
+                    ? widget.paymentToEdit!.createdAt
+                    : DateTime.now(),
               );
 
               if (isEditing) {
@@ -218,7 +275,10 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
               Navigator.of(context).pop();
             }
           },
-          child: Text(isEditing ? 'تحديث' : 'إضافة'),
+          child: Text(
+            isEditing ? 'تحديث' : 'إضافة',
+            style: TextStyle(color: AppColors.gold),
+          ),
         ),
       ],
     );

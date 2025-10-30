@@ -5,18 +5,30 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:open_file/open_file.dart';
 
 class PdfStorageService {
-  static Future<Directory> _getOrCreatePaymentReportsFolder() async {
+  static Future<String?> savePdfToDevice(
+    Uint8List pdfBytes,
+    String fileName,
+  ) async {
     try {
       Directory directory;
-
-      // استخدام getApplicationDocumentsDirectory بشكل مباشر أولاً
-      directory = await getApplicationDocumentsDirectory();
-
-      final paymentReportsFolder = Directory('${directory.path}/PaymentReports');
-
-      if (!await paymentReportsFolder.exists()) {
-        await paymentReportsFolder.create(recursive: true);
-        print('✅ تم إنشاء مجلد PaymentReports في: ${paymentReportsFolder.path}');
+      if (Platform.isAndroid) {
+        // محاولة الوصول إلى مجلد التحميلات أولاً
+        try {
+          directory = Directory('/storage/emulated/0/Download');
+          if (!await directory.exists()) {
+            directory =
+                await getExternalStorageDirectory() ??
+                await getApplicationDocumentsDirectory();
+          }
+        } catch (e) {
+          directory = await getApplicationDocumentsDirectory();
+        }
+      } else if (Platform.isIOS) {
+        directory = await getApplicationDocumentsDirectory();
+      } else {
+        directory =
+            await getDownloadsDirectory() ??
+            await getApplicationDocumentsDirectory();
       }
 
       return paymentReportsFolder;

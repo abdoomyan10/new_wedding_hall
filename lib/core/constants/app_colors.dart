@@ -14,7 +14,8 @@ class AppColors {
   // Brand / Wedding palette (centralized)
   static const Color deepRed = Color(0xFF8B0000); // 8B0000
   static const Color gold = Color(0xFFD4AF37); // D4AF37
-  static const Color paleGold = Color(0xFFF4E3A3); // F4E3A3
+  static const Color paleGold = Color(0xFFF4E3A3);
+  static const Color gold1 = Color(0xFFB76E79); // B76E79
 
   // Secondary Colors
   static const Color secondary = Color(0xFF00C853);

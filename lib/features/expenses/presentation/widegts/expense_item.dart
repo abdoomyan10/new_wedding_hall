@@ -63,29 +63,8 @@ class ExpenseItem extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
 
         ),
-
-        subtitle: Column(
-
-          crossAxisAlignment: CrossAxisAlignment.start,
-
-          children: [
-
-            Text('${expense.category} - ${_formatDate(expense.date)}'),
-
-            Text(
-
-              'العامل: ${expense.workerName}',
-
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-
-            ),
-
-          ],
-
-        ),
-
-        trailing: _buildTrailingButtons(context),
-
+        subtitle: Text('${expense.category} - ${_formatDate(expense.date)}'),
+        trailing: _buildTrailingButtons(),
         onTap: onTap,
 
       ),
@@ -557,5 +536,4 @@ class ExpenseItem extends StatelessWidget {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
   }
-
 }
