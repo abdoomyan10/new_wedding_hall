@@ -1,10 +1,8 @@
-// features/reports/presentation/pages/saved_reports_page.dart
+// features/reports/presentation/pages/saved_expenses_page.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_file/open_file.dart';
-import '../../../../core/services/dependencies.dart';
-import '../../../../injection_container.dart'; // أضف هذا الاستيراد
 import '../cubit/report_cubit.dart';
 
 class SavedReportsPage extends StatefulWidget {
@@ -25,8 +23,7 @@ class _SavedReportsPageState extends State<SavedReportsPage> {
 
   void _loadFiles() {
     setState(() {
-      // استخدام getIt مباشرة بدلاً من context.read
-      _filesFuture = getIt<ReportCubit>().getSavedReportFiles();
+      _filesFuture = context.read<ReportCubit>().getSavedReportFiles();
     });
   }
 
@@ -209,24 +206,20 @@ class _SavedReportsPageState extends State<SavedReportsPage> {
     try {
       final result = await OpenFile.open(file.path);
       if (result.type != ResultType.done) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('فشل في فتح الملف: ${result.message}'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل في فتح الملف: $e'),
-            backgroundColor: Colors.red,
+            content: Text('فشل في فتح الملف: ${result.message}'),
+            backgroundColor: Colors.orange,
           ),
         );
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('فشل في فتح الملف: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -293,8 +286,7 @@ class _SavedReportsPageState extends State<SavedReportsPage> {
 
     if (confirmed == true) {
       try {
-        // استخدام getIt مباشرة بدلاً من context.read
-        final success = await getIt<ReportCubit>().deleteSavedReportFile(file.path);
+        final success = await context.read<ReportCubit>().deleteSavedReportFile(file.path);
         if (success && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -313,14 +305,12 @@ class _SavedReportsPageState extends State<SavedReportsPage> {
           );
         }
       } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('فشل في حذف الملف: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('فشل في حذف الملف: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }

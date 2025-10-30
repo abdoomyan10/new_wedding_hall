@@ -1,15 +1,16 @@
 // features/payments/presentation/pages/payments_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_file/open_file.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
 import '../cubit/payment_cubit.dart';
 import '../widgets/add_payment_dialog.dart';
 import '../widgets/payment_filter_dialog.dart';
 import '../widgets/payment_filters.dart';
 import '../widgets/payment_stats_section.dart';
 import '../widgets/payments_list.dart';
+import 'saved_payments_reports_page.dart';
 
 class PaymentsPage extends StatefulWidget {
   const PaymentsPage({super.key});
@@ -20,8 +21,6 @@ class PaymentsPage extends StatefulWidget {
 
 class _PaymentsPageState extends State<PaymentsPage> {
   final ScrollController _scrollController = ScrollController();
-  bool _showSearchBar = false;
-  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -36,259 +35,192 @@ class _PaymentsPageState extends State<PaymentsPage> {
     );
   }
 
-  void _showFilterDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => const PaymentFilterDialog(),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: NestedScrollView(
-        controller: _scrollController,
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            // App Bar مع البحث
-            SliverAppBar(
-              title: _showSearchBar
-                  ? TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'ابحث في المدفوعات...',
-                  hintStyle: const TextStyle(color: AppColors.gray500),
-                  border: InputBorder.none,
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      setState(() {
-                        _showSearchBar = false;
-                        _searchController.clear();
-                      });
-                    },
-                  ),
-                ),
-                style: const TextStyle(color: AppColors.black),
-                onChanged: (value) {
-                  // TODO: تطبيق البحث
-                  context.read<PaymentCubit>().searchPayments(value);
-                },
-              )
-                  : const Text(
-                'إدارة المدفوعات',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: AppColors.white,
-                ),
-              ),
-              backgroundColor: AppColors.primary,
-              floating: true,
-              snap: true,
-              pinned: true,
-              elevation: 4,
-              forceElevated: innerBoxIsScrolled,
-              actions: [
-                if (!_showSearchBar)
-                  IconButton(
-                    icon: const Icon(Icons.search, color: AppColors.white),
-                    onPressed: () {
-                      setState(() {
-                        _showSearchBar = true;
-                      });
-                    },
-                  ),
-                IconButton(
-                  icon: const Icon(Icons.filter_list, color: AppColors.white),
-                  onPressed: _showFilterDialog,
-                ),
-                const SizedBox(width: 8),
-              ],
-            ),
-
-            // قسم الإحصائيات
-            const SliverToBoxAdapter(
-              child: PaymentStatsSection(),
-            ),
-
-            // التصفية السريعة
-            const SliverToBoxAdapter(
-              child: PaymentFilters(),
-            ),
-
-            // عنوان قائمة المدفوعات
-            SliverToBoxAdapter(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                color: AppColors.white,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'قائمة المدفوعات',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: AppColors.black,
-                      ),
-                    ),
-                    BlocBuilder<PaymentCubit, PaymentState>(
-                      builder: (context, state) {
-                        if (state is PaymentLoaded) {
-                          return Text(
-                            '${state.payments.length} دفعة',
-                            style: const TextStyle(
-                              color: AppColors.gray500,
-                              fontSize: 14,
-                            ),
-                          );
-                        }
-                        return const SizedBox();
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ];
-        },
-        body: const PaymentsList(),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddPaymentDialog,
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: const Icon(Icons.add, size: 28),
-      ),
-      // زر التحميل لأعلى
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: _buildBottomAppBar(),
+      appBar: _buildAppBar(context),
+      body: _buildBody(),
+      floatingActionButton: _buildFloatingActionButton(context),
     );
   }
 
-  Widget _buildBottomAppBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.gray500.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // زر التصدير
-              OutlinedButton.icon(
-                onPressed: () {
-                  // TODO: تطبيق تصدير البيانات
-                  _showExportOptions();
-                },
-                icon: const Icon(Icons.download, size: 18),
-                label: const Text('تصدير'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  side: const BorderSide(color: AppColors.primary),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-
-              // زر التحميل لأعلى
-              IconButton(
-                onPressed: () {
-                  _scrollController.animateTo(
-                    0,
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeInOut,
-                  );
-                },
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.arrow_upward,
-                    color: AppColors.primary,
-                    size: 20,
-                  ),
-                ),
-              ),
-            ],
-          ),
+  AppBar _buildAppBar(BuildContext context) {
+    return AppBar(
+      title: const Text(
+        'إدارة المدفوعات',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
         ),
       ),
+      backgroundColor: Colors.blue.shade700,
+      foregroundColor: Colors.white,
+      elevation: 2,
+      actions: [
+        // زر التقارير المحفوظة
+        IconButton(
+          icon: const Icon(Icons.folder),
+          tooltip: 'التقارير المحفوظة',
+          onPressed: () => _navigateToSavedReports(context),
+        ),
+        // زر تصدير PDF مع حفظ على الجهاز
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.picture_as_pdf),
+          tooltip: 'تصدير PDF',
+          onSelected: (value) {
+            if (value == 'save_report') {
+              _savePdfReport(context);
+            } else if (value == 'print_report') {
+              _printPdfReport(context);
+            } else if (value == 'saved_reports') {
+              _navigateToSavedReports(context);
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'save_report',
+              child: Row(
+                children: [
+                  Icon(Icons.save, color: Colors.green),
+                  SizedBox(width: 8),
+                  Text('حفظ PDF على الجهاز'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'print_report',
+              child: Row(
+                children: [
+                  Icon(Icons.print, color: Colors.blue),
+                  SizedBox(width: 8),
+                  Text('طباعة مباشرة'),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
+            const PopupMenuItem(
+              value: 'saved_reports',
+              child: Row(
+                children: [
+                  Icon(Icons.folder_open, color: Colors.orange),
+                  SizedBox(width: 8),
+                  Text('التقارير المحفوظة'),
+                ],
+              ),
+            ),
+          ],
+        ),
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          tooltip: 'تحديث البيانات',
+          onPressed: () => context.read<PaymentCubit>().loadPayments(),
+        ),
+      ],
     );
   }
 
-  void _showExportOptions() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'تصدير البيانات',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: AppColors.black,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                leading: const Icon(Icons.picture_as_pdf, color: AppColors.error),
-                title: const Text('تصدير كـ PDF'),
-                subtitle: const Text('تصدير قائمة المدفوعات بصيغة PDF'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // TODO: تطبيق تصدير PDF
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.table_chart, color: AppColors.success),
-                title: const Text('تصدير كـ Excel'),
-                subtitle: const Text('تصدير البيانات بصيغة Excel'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // TODO: تطبيق تصدير Excel
-                },
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('إلغاء'),
-              ),
-            ],
+  Widget _buildBody() {
+    return NestedScrollView(
+      controller: _scrollController,
+      headerSliverBuilder: (context, innerBoxIsScrolled) {
+        return [
+          // قسم الإحصائيات
+          const SliverToBoxAdapter(
+            child: PaymentStatsSection(),
           ),
-        );
+
+          // التصفية السريعة
+          const SliverToBoxAdapter(
+            child: PaymentFilters(),
+          ),
+
+          // عنوان قائمة المدفوعات
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              color: Colors.white,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'قائمة المدفوعات',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
+                  ),
+                  BlocBuilder<PaymentCubit, PaymentState>(
+                    builder: (context, state) {
+                      if (state is PaymentLoaded) {
+                        return Text(
+                          '${state.payments.length} دفعة',
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                        );
+                      }
+                      return const SizedBox();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ];
       },
+      body: const PaymentsList(),
+    );
+  }
+
+  Widget _buildFloatingActionButton(BuildContext context) {
+    return FloatingActionButton(
+      onPressed: _showAddPaymentDialog,
+      backgroundColor: Colors.blue.shade700,
+      foregroundColor: Colors.white,
+      child: const Icon(Icons.add, size: 28),
+    );
+  }
+
+  void _savePdfReport(BuildContext context) {
+    context.read<PaymentCubit>().generateAndSavePdfReport();
+
+    // إظهار رسالة تأكيد
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('جاري حفظ تقرير PDF...'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _printPdfReport(BuildContext context) {
+    context.read<PaymentCubit>().generatePdfReport();
+
+    // إظهار رسالة تأكيد
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('جاري إعداد التقرير للطباعة...'),
+        backgroundColor: Colors.blue,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _navigateToSavedReports(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SavedPaymentsReportsPage()),
     );
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
-    _searchController.dispose();
     super.dispose();
   }
 }

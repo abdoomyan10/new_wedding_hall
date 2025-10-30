@@ -1,4 +1,3 @@
-// features/expenses/presentation/cubit/expense_state.dart
 import '../../domain/entities/expense_entity.dart';
 import '../../domain/entities/expense_stats_entity.dart';
 import '../../domain/entities/profit_entity.dart';

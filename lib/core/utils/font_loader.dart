@@ -1,25 +1,51 @@
-import 'package:pdf/widgets.dart' as pw;
+// core/utils/font_loader.dart
+import 'dart:typed_data';
 import 'package:flutter/services.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 class FontLoader {
-  static pw.Font? _arabicFont;
-  static bool _isLoaded = false;
+  static pw.Font? arabicFont;
+  static bool isLoaded = false;
 
   static Future<void> loadFont() async {
-    if (_isLoaded) return;
+    if (isLoaded) return;
 
     try {
-      // محاولة تحميل الخط العربي
-      final fontData = await rootBundle.load('assets/fonts/Amiri-Regular.ttf');
-      _arabicFont = pw.Font.ttf(fontData);
-      _isLoaded = true;
-      print('✅ الخط العربي تم تحميله بنجاح في FontLoader');
+      print('🔄 بدء تحميل الخطوط العربية...');
+
+      // قائمة بالخطوط البديلة بالترتيب
+      final fontPaths = [
+        'assets/fonts/NotoNaskhArabic-Regular.ttf',
+        'assets/fonts/NotoSansArabic-Regular.ttf',
+        'assets/fonts/Amiri-Regular.ttf',
+        'assets/fonts/Tajawal-Regular.ttf',
+        'assets/fonts/NotoKufiArabic-Regular.ttf',
+      ];
+
+      for (final path in fontPaths) {
+        try {
+          final fontData = await rootBundle.load(path);
+          arabicFont = pw.Font.ttf(fontData);
+          print('✅ تم تحميل الخط العربي: $path');
+          break;
+        } catch (e) {
+          print('❌ فشل تحميل الخط $path: $e');
+          continue;
+        }
+      }
+
+      // إذا فشل جميع الخطوط، استخدم الخط الافتراضي
+      if (arabicFont == null) {
+        print('⚠️ استخدام الخط الافتراضي');
+        arabicFont = pw.Font.helvetica();
+      }
+
+      isLoaded = true;
+      print('✅ تم تحميل الخطوط العربية بنجاح');
     } catch (e) {
-      print('❌ فشل تحميل الخط: $e');
-      _isLoaded = true; // منع إعادة المحاولة
+      print('❌ خطأ في تحميل الخطوط: $e');
+      arabicFont = pw.Font.helvetica();
+      isLoaded = true;
     }
   }
-
-  static pw.Font? get arabicFont => _arabicFont;
-  static bool get isLoaded => _isLoaded;
 }
