@@ -255,10 +255,8 @@ class _PaymentDetailsPageState extends State<PaymentDetailsPage> {
       onPressed: _isPdfInitialized ? _generatePdf : null,
       icon: _isPdfInitialized
           ? const Icon(Icons.picture_as_pdf)
-          : _buildLoadingIndicator(),
-      label: _isPdfInitialized
-          ? const Text('معاينة PDF')
-          : const Text('جاري التحميل...'),
+          : const CircularProgressIndicator(),
+      label: Text(_isPdfInitialized ? 'معاينة PDF' : 'جاري التهيئة...'),
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
@@ -268,13 +266,17 @@ class _PaymentDetailsPageState extends State<PaymentDetailsPage> {
   }
 
   Widget _buildSavePdfButton() {
-    return OutlinedButton.icon(
+    return ElevatedButton.icon(
       onPressed: _isPdfInitialized ? _savePdfToDevice : null,
-      icon: const Icon(Icons.save, color: AppColors.info),
-      label: const Text('حفظ PDF على الجهاز', style: TextStyle(color: AppColors.info)),
-      style: OutlinedButton.styleFrom(
+      icon: _isPdfInitialized
+          ? const Icon(Icons.save_alt)
+          : const CircularProgressIndicator(),
+      label: Text(_isPdfInitialized ? 'حفظ PDF في الجهاز' : 'جاري التهيئة...'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.success,
+        foregroundColor: AppColors.white,
         padding: const EdgeInsets.symmetric(vertical: 12),
-        side: const BorderSide(color: AppColors.info),
+        minimumSize: const Size(double.infinity, 48),
       ),
     );
   }
@@ -282,41 +284,22 @@ class _PaymentDetailsPageState extends State<PaymentDetailsPage> {
   Widget _buildSavedReportsButton() {
     return OutlinedButton.icon(
       onPressed: () => _navigateToSavedReports(context),
-      icon: const Icon(Icons.folder_open, color: AppColors.warning),
-      label: const Text('عرض التقارير المحفوظة', style: TextStyle(color: AppColors.warning)),
+      icon: const Icon(Icons.folder_open),
+      label: const Text('عرض التقارير المحفوظة'),
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        side: const BorderSide(color: AppColors.warning),
+        minimumSize: const Size(double.infinity, 48),
       ),
     );
   }
 
-  Widget _buildLoadingIndicator({double size = 16}) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: const CircularProgressIndicator(
-        strokeWidth: 2,
-        valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
-      ),
-    );
-  }
+  // ========== دوال المعالجة ==========
 
   void _editPayment() {
     showDialog(
       context: context,
-      builder: (context) => AddPaymentDialog(paymentToEdit: widget.payment),
-    ).then((_) {
-      if (mounted) {
-        context.read<PaymentCubit>().loadPayments();
-      }
-    });
-  }
-
-  void _navigateToSavedReports(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const SavedPaymentsReportsPage(),
+      builder: (context) => AddPaymentDialog(
+        paymentToEdit: widget.payment,
       ),
     );
   }
@@ -329,11 +312,14 @@ class _PaymentDetailsPageState extends State<PaymentDetailsPage> {
         content: const Text('هل أنت متأكد من حذف هذه الدفعة؟'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.pop(context),
             child: const Text('إلغاء'),
           ),
           TextButton(
-            onPressed: _deletePayment,
+            onPressed: () {
+              Navigator.pop(context);
+              _deletePayment();
+            },
             child: const Text('حذف', style: TextStyle(color: AppColors.error)),
           ),
         ],
@@ -342,98 +328,185 @@ class _PaymentDetailsPageState extends State<PaymentDetailsPage> {
   }
 
   void _deletePayment() {
-    // إغلاق dialog التأكيد أولاً
-    Navigator.of(context).pop();
-
-    // إظهار تحميل
-    _showLoadingDialog('جاري حذف الدفعة...');
-
-    // تنفيذ الحذف مباشرة
     context.read<PaymentCubit>().deletePayment(widget.payment.id);
-
-    // إغلاق الصفحات بعد فترة قصيرة
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (mounted) {
-        Navigator.of(context).pop(); // إغلاق dialog التحميل
-        Navigator.of(context).pop(); // العودة للصفحة السابقة
-
-        // إظهار رسالة النجاح
-        _showSnackBar('تم حذف الدفعة بنجاح', AppColors.success);
-      }
-    });
+    Navigator.pop(context);
   }
+
+  // ========== دوال PDF المحسنة ==========
 
   Future<void> _generatePdf() async {
     if (!_isPdfInitialized) {
-      _showSnackBar('الخطوط غير جاهزة، يرجى الانتظار...', AppColors.warning);
+      _showErrorSnackBar('PDF غير جاهز، يرجى الانتظار قليلاً');
       return;
     }
 
     try {
-      _showLoadingDialog('جاري معاينة PDF...');
-
       final pdf = pw.Document();
-      pdf.addPage(_buildPdfPage());
 
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          build: (pw.Context context) {
+            return _buildPdfContent();
+          },
+        ),
+      );
 
+      // حفظ الملف أولاً
+      final fileName = 'دفعة_${_cleanName(widget.payment.clientName)}_${DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now())}.pdf';
+      final filePath = await PdfStorageService.savePdfToDevice(pdf, fileName);
+      print('✅ تم حفظ الملف تلقائياً في: $filePath');
+
+      // ثم المعاينة
       await Printing.layoutPdf(
         onLayout: (PdfPageFormat format) async => pdf.save(),
       );
 
+      _showSuccessSnackBar('تم إنشاء PDF بنجاح وتم حفظه تلقائياً');
+
     } catch (e) {
-      if (mounted) {
-        Navigator.of(context).pop();
-        _showSnackBar('خطأ في معاينة PDF: $e', AppColors.error);
-      }
+      print('❌ خطأ في إنشاء PDF: $e');
+      _showErrorSnackBar('فشل في إنشاء PDF: $e');
     }
   }
 
   Future<void> _savePdfToDevice() async {
     if (!_isPdfInitialized) {
-      _showSnackBar('الخطوط غير جاهزة، يرجى الانتظار...', AppColors.warning);
+      _showErrorSnackBar('PDF غير جاهز، يرجى الانتظار قليلاً');
       return;
     }
 
     try {
-      _showLoadingDialog('جاري حفظ PDF...');
-
-      final hasPermission = await PdfStorageService.checkStoragePermission();
-      if (!hasPermission) {
-        if (mounted) {
-          Navigator.of(context).pop();
-          _showSnackBar('تم رفض إذن التخزين', AppColors.error);
-        }
-        return;
-      }
-
       final pdf = pw.Document();
-      pdf.addPage(_buildPdfPage());
-      final Uint8List pdfBytes = await pdf.save();
 
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          build: (pw.Context context) {
+            return _buildPdfContent();
+          },
+        ),
+      );
 
-      final fileName = 'دفعة_${_cleanName(widget.payment.clientName)}_${DateFormat('yyyy-MM-dd').format(DateTime.now())}';
-      final savedPath = await PdfStorageService.savePdfToDevice(pdfBytes, fileName);
+      final fileName = 'دفعة_${_cleanName(widget.payment.clientName)}_${DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now())}.pdf';
+      final filePath = await PdfStorageService.savePdfToDevice(pdf, fileName);
 
-      if (savedPath != null) {
-        // فتح الملف بعد حفظه
-        await OpenFile.open(savedPath);
+      _showSuccessSnackBar('تم حفظ PDF بنجاح');
 
-        _showSaveSuccessDialog(savedPath, fileName);
-      } else {
-        _showSnackBar('فشل في حفظ الملف - تأكد من أذونات التخزين', AppColors.error);
-      }
+      // فتح الملف بعد حفظه
+      await OpenFile.open(filePath);
 
     } catch (e) {
-      if (mounted) {
-        Navigator.of(context).pop();
-        _showSnackBar('خطأ في حفظ PDF: $e', AppColors.error);
-      }
+      print('❌ خطأ في حفظ PDF: $e');
+      _showErrorSnackBar('فشل في حفظ PDF: $e');
+    }
+  }
+
+  pw.Widget _buildPdfContent() {
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        padding: const pw.EdgeInsets.all(20),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            // العنوان
+            PdfUtils.buildArabicText(
+              'تفاصيل الدفعة',
+              fontSize: 24,
+              bold: true,
+            ),
+            pw.SizedBox(height: 20),
+
+            // بطاقة المعلومات الأساسية
+            pw.Container(
+              padding: const pw.EdgeInsets.all(20),
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(color: PdfColors.blue),
+                borderRadius: pw.BorderRadius.circular(10),
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                children: [
+                  _buildPdfDetailRow('اسم العميل:', widget.payment.clientName),
+                  _buildPdfDetailRow('اسم الحفلة:', widget.payment.eventName),
+                  _buildPdfDetailRow('المبلغ:', '${widget.payment.amount.toStringAsFixed(0)} ر.س'),
+                  _buildPdfDetailRow('طريقة الدفع:', _getPaymentMethodText(widget.payment.paymentMethod)),
+                  _buildPdfDetailRow('حالة الدفع:', _getStatusText(widget.payment.status)),
+                  _buildPdfDetailRow('تاريخ الدفع:', DateFormat('yyyy-MM-dd').format(widget.payment.paymentDate)),
+                  _buildPdfDetailRow('تاريخ الإضافة:', DateFormat('yyyy-MM-dd - HH:mm').format(widget.payment.createdAt)),
+                  _buildPdfDetailRow('ملاحظات:', widget.payment.notes.isEmpty ? 'لا توجد' : widget.payment.notes),
+                  _buildPdfDetailRow('المعرف:', widget.payment.id),
+                ],
+              ),
+            ),
+
+            pw.SizedBox(height: 30),
+
+            // تذييل الصفحة
+            PdfUtils.buildArabicText(
+              'تم إنشاء هذا التقرير في: ${DateFormat('yyyy-MM-dd - HH:mm').format(DateTime.now())}',
+              fontSize: 12,
+              color: PdfColors.grey,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  pw.Widget _buildPdfDetailRow(String label, String value) {
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        margin: const pw.EdgeInsets.only(bottom: 15),
+        child: pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          mainAxisAlignment: pw.MainAxisAlignment.end,
+          children: [
+            pw.Expanded(
+              child: PdfUtils.buildArabicText(value, fontSize: 14),
+            ),
+            pw.SizedBox(width: 20),
+            pw.Container(
+              width: 100,
+              child: PdfUtils.buildArabicText(
+                label,
+                fontSize: 14,
+                bold: true,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ========== دوال مساعدة ==========
+
+  String _getPaymentMethodText(String method) {
+    switch (method) {
+      case 'cash':
+        return 'نقدي';
+      case 'bank_transfer':
+        return 'تحويل بنكي';
+      case 'credit_card':
+        return 'بطاقة ائتمان';
+      default:
+        return method;
+    }
+  }
+
+  String _getStatusText(String status) {
+    switch (status) {
+      case 'completed':
+        return 'مكتمل';
+      case 'pending':
+        return 'معلق';
+      case 'failed':
+        return 'فاشل';
+      default:
+        return status;
     }
   }
 
@@ -441,338 +514,30 @@ class _PaymentDetailsPageState extends State<PaymentDetailsPage> {
     return name.replaceAll(' ', '_').replaceAll(RegExp(r'[^\w]'), '');
   }
 
-  void _showSaveSuccessDialog(String filePath, String fileName) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle, color: AppColors.success),
-            SizedBox(width: 8),
-            Text('تم الحفظ بنجاح'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('تم حفظ ملف PDF بنجاح وفتحه'),
-            const SizedBox(height: 8),
-            Text(
-              '$fileName.pdf',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              _getShortPath(filePath),
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.gray600,
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'تم إضافة الملف إلى التقارير المحفوظة تلقائياً',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.success,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('موافق'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // الانتقال إلى صفحة التقارير المحفوظة
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const SavedPaymentsReportsPage(),
-                ),
-              );
-            },
-            child: const Text('عرض التقارير'),
-          ),
-        ],
+  void _navigateToSavedReports(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SavedPaymentsReportsPage(),
       ),
     );
   }
 
-  String _getShortPath(String fullPath) {
-    if (fullPath.length > 50) {
-      return '...${fullPath.substring(fullPath.length - 50)}';
-    }
-    return fullPath;
-  }
-
-  Future<void> _openPdfFile(String filePath) async {
-    final success = await PdfStorageService.openPdfFile(filePath);
-    if (!success) {
-      _showSnackBar('تعذر فتح الملف', AppColors.warning);
-    }
-  }
-
-  pw.Page _buildPdfPage() {
-    return pw.Page(
-      pageFormat: PdfPageFormat.a4,
-      build: (pw.Context context) {
-        return pw.Directionality(
-          textDirection: pw.TextDirection.rtl,
-          child: pw.Container(
-            padding: const pw.EdgeInsets.all(30),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                _buildPdfHeader(),
-                pw.SizedBox(height: 30),
-                _buildPdfSection('المعلومات الأساسية', _buildBasicInfo()),
-                pw.SizedBox(height: 20),
-                _buildPdfSection('معلومات الدفع', _buildPaymentInfo()),
-                if (widget.payment.notes.isNotEmpty) ...[
-                  pw.SizedBox(height: 20),
-                  _buildPdfSection('ملاحظات', _buildNotesInfo()),
-                ],
-                pw.SizedBox(height: 40),
-                _buildPdfFooter(),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  pw.Widget _buildPdfHeader() {
-    return pw.Column(
-      children: [
-        pw.Center(
-          child: pw.Text(
-            'تفاصيل الدفعة',
-            style: PdfUtils.getArabicTextStyle(
-              fontSize: 24,
-              fontWeight: pw.FontWeight.bold,
-              color: PdfColors.blue900,
-            ),
-          ),
-        ),
-        pw.SizedBox(height: 10),
-        pw.Center(
-          child: pw.Text(
-            'رقم المرجع: ${widget.payment.id}',
-            style: PdfUtils.getArabicTextStyle(
-              fontSize: 12,
-              color: PdfColors.grey600,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  List<pw.Widget> _buildBasicInfo() {
-    return [
-      _buildPdfRow('اسم العميل', widget.payment.clientName),
-      _buildPdfRow('اسم الحفلة', widget.payment.eventName),
-      _buildPdfRow('تاريخ الإنشاء',
-          DateFormat('yyyy-MM-dd HH:mm').format(widget.payment.createdAt)),
-    ];
-  }
-
-  List<pw.Widget> _buildPaymentInfo() {
-    return [
-      _buildPdfRow('المبلغ', '${widget.payment.amount.toStringAsFixed(0)} ر.س'),
-      _buildPdfRow('طريقة الدفع', _getPaymentMethodText(widget.payment.paymentMethod)),
-      _buildPdfRow('حالة الدفع', _getStatusText(widget.payment.status)),
-      _buildPdfRow('تاريخ الدفع',
-          DateFormat('yyyy-MM-dd').format(widget.payment.paymentDate)),
-    ];
-  }
-
-  List<pw.Widget> _buildNotesInfo() {
-    return [
-      pw.Text(
-        widget.payment.notes,
-        style: PdfUtils.getArabicTextStyle(fontSize: 14),
-      ),
-    ];
-  }
-
-  pw.Widget _buildPdfSection(String title, List<pw.Widget> children) {
-    return pw.Container(
-      width: double.infinity,
-      padding: const pw.EdgeInsets.all(15),
-      decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColors.blue800, width: 1),
-        borderRadius: pw.BorderRadius.circular(8),
-      ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Text(
-            title,
-            style: PdfUtils.getArabicTextStyle(
-              fontSize: 18,
-              fontWeight: pw.FontWeight.bold,
-              color: PdfColors.blue800,
-            ),
-          ),
-          pw.SizedBox(height: 10),
-          ...children,
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildPdfRow(String label, String value) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(vertical: 4),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          pw.Text(
-            label,
-            style: PdfUtils.getArabicTextStyle(
-              fontWeight: pw.FontWeight.bold,
-              color: PdfColors.grey700,
-            ),
-          ),
-          pw.Text(
-            value,
-            style: PdfUtils.getArabicTextStyle(
-              color: PdfColors.black,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildPdfFooter() {
-    return pw.Column(
-      children: [
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
-          children: [
-            _buildSignatureField(),
-            _buildDateField(),
-          ],
-        ),
-        pw.SizedBox(height: 30),
-        _buildPdfDivider(),
-        pw.SizedBox(height: 10),
-        _buildPdfFooterText(),
-      ],
-    );
-  }
-
-  pw.Widget _buildSignatureField() {
-    return pw.Column(
-      children: [
-        pw.Container(
-          width: 150,
-          height: 1,
-          color: PdfColors.black,
-        ),
-        pw.SizedBox(height: 5),
-        pw.Text(
-          'التوقيع',
-          style: PdfUtils.getArabicTextStyle(
-            fontSize: 12,
-            color: PdfColors.grey600,
-          ),
-        ),
-      ],
-    );
-  }
-
-  pw.Widget _buildDateField() {
-    return pw.Column(
-      children: [
-        pw.Text(
-          'التاريخ: ${DateFormat('yyyy-MM-dd').format(DateTime.now())}',
-          style: PdfUtils.getArabicTextStyle(
-            fontSize: 12,
-            color: PdfColors.grey600,
-          ),
-        ),
-      ],
-    );
-  }
-
-  pw.Widget _buildPdfDivider() {
-    return pw.Container(
-      width: double.infinity,
-      height: 1,
-      color: PdfColors.grey300,
-    );
-  }
-
-  pw.Widget _buildPdfFooterText() {
-    return pw.Center(
-      child: pw.Text(
-        'تم إنشاء هذا المستند تلقائياً - نظام إدارة المدفوعات',
-        style: PdfUtils.getArabicTextStyle(
-          fontSize: 10,
-          color: PdfColors.grey500,
-        ),
-      ),
-    );
-  }
-
-  void _showLoadingDialog([String message = 'جاري المعالجة...']) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        content: Row(
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(width: 16),
-            Text(message),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showSnackBar(String message, Color color) {
+  void _showSuccessSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: color,
-        duration: const Duration(seconds: 3),
+        backgroundColor: AppColors.success,
       ),
     );
   }
 
-  String _getStatusText(String status) {
-    switch (status) {
-      case 'completed': return 'مكتمل';
-      case 'pending': return 'معلق';
-      case 'failed': return 'فاشل';
-      default: return status;
-    }
-  }
-
-  String _getPaymentMethodText(String paymentMethod) {
-    switch (paymentMethod) {
-      case 'cash': return 'نقدي';
-      case 'bank_transfer': return 'تحويل بنكي';
-      case 'credit_card': return 'بطاقة ائتمان';
-      default: return paymentMethod;
-    }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.error,
+      ),
+    );
   }
 }

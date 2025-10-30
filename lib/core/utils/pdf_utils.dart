@@ -1,3 +1,4 @@
+// core/utils/pdf_utils.dart
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'font_loader.dart';
@@ -27,5 +28,27 @@ class PdfUtils {
       await FontLoader.loadFont();
     }
     return isReady;
+  }
+
+  // دالة مساعدة جديدة لبناء النص العربي
+  static pw.Widget buildArabicText(
+      String text, {
+        double fontSize = 12,
+        bool bold = false,
+        PdfColor color = PdfColors.black,
+        pw.TextAlign alignment = pw.TextAlign.right,
+      }) {
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Text(
+        text,
+        style: getArabicTextStyle(
+          fontSize: fontSize,
+          fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+          color: color,
+        ),
+        textAlign: alignment,
+      ),
+    );
   }
 }
