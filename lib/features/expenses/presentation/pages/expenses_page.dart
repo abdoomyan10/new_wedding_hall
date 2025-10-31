@@ -28,11 +28,16 @@ class ExpensesPage extends StatelessWidget {
     return AppBar(
       title: const Text(
         'إدارة التكاليف',
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
+          fontFamily: 'Tajawal',
+        ),
       ),
       backgroundColor: AppColors.deepRed,
       foregroundColor: AppColors.paleGold,
       elevation: 2,
+      centerTitle: true,
       actions: [
         // زر التقارير المحفوظة
         IconButton(
@@ -60,7 +65,10 @@ class ExpensesPage extends StatelessWidget {
                 children: [
                   Icon(Icons.save, color: Colors.green),
                   SizedBox(width: 8),
-                  Text('حفظ PDF على الجهاز'),
+                  Text(
+                    'حفظ PDF على الجهاز',
+                    style: TextStyle(fontFamily: 'Tajawal'),
+                  ),
                 ],
               ),
             ),
@@ -70,7 +78,10 @@ class ExpensesPage extends StatelessWidget {
                 children: [
                   Icon(Icons.print, color: Colors.blue),
                   SizedBox(width: 8),
-                  Text('طباعة مباشرة'),
+                  Text(
+                    'طباعة مباشرة',
+                    style: TextStyle(fontFamily: 'Tajawal'),
+                  ),
                 ],
               ),
             ),
@@ -81,7 +92,10 @@ class ExpensesPage extends StatelessWidget {
                 children: [
                   Icon(Icons.folder_open, color: Colors.orange),
                   SizedBox(width: 8),
-                  Text('التقارير المحفوظة'),
+                  Text(
+                    'التقارير المحفوظة',
+                    style: TextStyle(fontFamily: 'Tajawal'),
+                  ),
                 ],
               ),
             ),
@@ -118,7 +132,10 @@ class ExpensesPage extends StatelessWidget {
     // إظهار رسالة تأكيد
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('جاري حفظ تقرير PDF...'),
+        content: const Text(
+          'جاري حفظ تقرير PDF...',
+          style: TextStyle(fontFamily: 'Tajawal'),
+        ),
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
@@ -132,7 +149,10 @@ class ExpensesPage extends StatelessWidget {
     // إظهار رسالة تأكيد
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('جاري إعداد التقرير للطباعة...'),
+        content: const Text(
+          'جاري إعداد التقرير للطباعة...',
+          style: TextStyle(fontFamily: 'Tajawal'),
+        ),
         backgroundColor: Colors.blue,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
@@ -153,13 +173,16 @@ class _ExpensesBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      children: [
-        ExpenseStatsCard(),
-        Divider(height: 1, thickness: 1),
-        _ExpensesListHeader(),
-        Expanded(child: ExpenseList()),
-      ],
+    return const Directionality(
+      textDirection: TextDirection.rtl,
+      child: Column(
+        children: [
+          ExpenseStatsCard(),
+          Divider(height: 1, thickness: 1),
+          _ExpensesListHeader(),
+          Expanded(child: ExpenseList()),
+        ],
+      ),
     );
   }
 }
@@ -181,6 +204,7 @@ class _ExpensesListHeader extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: AppColors.gold,
+                fontFamily: 'Tajawal',
               ),
             ),
           ),
@@ -191,6 +215,7 @@ class _ExpensesListHeader extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: AppColors.gold,
+                fontFamily: 'Tajawal',
               ),
             ),
           ),
@@ -201,6 +226,7 @@ class _ExpensesListHeader extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: AppColors.gold,
+                fontFamily: 'Tajawal',
               ),
             ),
           ),

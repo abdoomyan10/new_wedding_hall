@@ -1,15 +1,14 @@
 import 'dart:io';
-
-import 'package:bloc/bloc.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
-import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:new_wedding_hall/core/utils/pdf_utils.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
+import 'package:intl/intl.dart';
 import '../../domain/entities/expense_entity.dart';
 import '../../domain/entities/expense_stats_entity.dart';
 import '../../domain/entities/profit_entity.dart';
@@ -20,14 +19,11 @@ import '../../domain/usecases/get_expense_usecase.dart';
 import 'expense_state.dart';
 
 class ExpenseCubit extends Cubit<ExpenseState> {
-
   final AddExpenseUseCase addExpenseUseCase;
   final DeleteExpenseUseCase deleteExpenseUseCase;
   final GetExpensesUseCase getExpensesUseCase;
   final GetExpenseStatsUseCase getExpenseStatsUseCase;
 
-  // متغيرات لحفظ الخطوط العربية
-  pw.Font? _arabicFont;
   bool _fontsLoaded = false;
 
   ExpenseCubit({
@@ -36,74 +32,29 @@ class ExpenseCubit extends Cubit<ExpenseState> {
     required this.getExpensesUseCase,
     required this.getExpenseStatsUseCase,
   }) : super(const ExpenseInitial()) {
-    _loadArabicFonts();
+    _initializeFonts();
   }
 
-  // تحميل الخطوط العربية - استخدام خطوط تدعم الاتصال
-  Future<void> _loadArabicFonts() async {
+  Future<void> _initializeFonts() async {
     try {
-      debugPrint('🔄 بدء تحميل الخطوط العربية...');
-
-      // قائمة بالخطوط التي تدعم العربية بشكل جيد
-      final List<String> fontPaths = [
-        'assets/fonts/NotoNaskhArabic-VariableFont_wght.ttf',
-        'assets/fonts/Amiri-Regular.ttf',
-        'assets/fonts/Tajawal-Regular.ttf',
-        'assets/fonts/NotoKufiArabic-VariableFont_wght.ttf',
-      ];
-
-      for (final path in fontPaths) {
-        try {
-          final fontData = await rootBundle.load(path);
-          _arabicFont = pw.Font.ttf(fontData);
-          debugPrint('✅ تم تحميل الخط العربي: $path');
-          break; // استخدم أول خط يتم تحميله بنجاح
-        } catch (e) {
-          debugPrint('❌ فشل تحميل الخط $path: $e');
-          continue;
-        }
-      }
-
-      // إذا فشل تحميل جميع الخطوط، استخدم خط افتراضي
-      if (_arabicFont == null) {
-        debugPrint('⚠️ استخدام الخط الافتراضي');
-        _arabicFont = pw.Font.helvetica();
-      }
-
+      await PdfUtils.initialize();
       _fontsLoaded = true;
-      debugPrint('✅ تم تحميل الخطوط العربية بنجاح');
-
+      debugPrint('✅ تم تهيئة الخطوط العربية في ExpenseCubit');
     } catch (e) {
-      debugPrint('❌ خطأ في تحميل الخطوط العربية: $e');
+      debugPrint('❌ خطأ في تهيئة الخطوط: $e');
       _fontsLoaded = false;
-      _arabicFont = pw.Font.helvetica();
-      _fontsLoaded = true;
     }
   }
 
-  // دالة محسنة للحصول على النمط مع الخط العربي
-  pw.TextStyle _getTextStyle({double fontSize = 12, bool bold = false, PdfColor? color}) {
-    return pw.TextStyle(
-      font: _arabicFont,
-      fontSize: fontSize,
-      color: color,
-      fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-    );
-  }
-
-  // دالة جديدة لمعالجة النص العربي وضبط الاتجاه
-  pw.Widget _buildArabicText(String text, {double fontSize = 12, bool bold = false, PdfColor? color, pw.TextAlign alignment = pw.TextAlign.right}) {
-    return pw.Text(
-      text,
-      style: _getTextStyle(fontSize: fontSize, bold: bold, color: color),
-      textDirection: pw.TextDirection.rtl,
-      textAlign: alignment,
-    );
+  Future<void> _ensureFontsLoaded() async {
+    if (!_fontsLoaded) {
+      await PdfUtils.ensureReady();
+      _fontsLoaded = PdfUtils.isReady;
+    }
   }
 
   // ========== دوال إدارة الملفات والمجلدات ==========
 
-  // إنشاء مجلد ExpenseReports إذا لم يكن موجوداً
   Future<Directory> _getOrCreateExpenseReportsFolder() async {
     try {
       Directory directory;
@@ -137,12 +88,13 @@ class ExpenseCubit extends Cubit<ExpenseState> {
     }
   }
 
-  // دالة مساعدة محسنة لحفظ الملف
+  String _cleanFileName(String fileName) {
+    return fileName.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+  }
+
   Future<String> _savePdfFile(pw.Document pdf, String fileName) async {
     try {
-      // تنظيف اسم الملف من الأحرف غير المسموح بها
       final cleanFileName = _cleanFileName(fileName);
-
       final folder = await _getOrCreateExpenseReportsFolder();
       final file = File('${folder.path}/$cleanFileName');
       final bytes = await pdf.save();
@@ -158,12 +110,6 @@ class ExpenseCubit extends Cubit<ExpenseState> {
     }
   }
 
-  // تنظيف اسم الملف من الرموز غير المسموح بها
-  String _cleanFileName(String fileName) {
-    return fileName.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
-  }
-
-  // الحصول على قائمة ملفات PDF المحفوظة
   Future<List<File>> getSavedPdfFiles() async {
     try {
       final folder = await _getOrCreateExpenseReportsFolder();
@@ -199,7 +145,6 @@ class ExpenseCubit extends Cubit<ExpenseState> {
     }
   }
 
-  // حذف ملف PDF محفوظ
   Future<bool> deleteSavedPdfFile(String filePath) async {
     try {
       final file = File(filePath);
@@ -219,11 +164,25 @@ class ExpenseCubit extends Cubit<ExpenseState> {
 
   // ========== دوال إنشاء PDF مع دعم عربي محسن ==========
 
-  // بناء رأس التقرير محسن
+  pw.Widget _buildArabicText(String text, {
+    double fontSize = 12,
+    bool bold = false,
+    PdfColor? color,
+    pw.TextAlign alignment = pw.TextAlign.right
+  }) {
+    return PdfUtils.buildSafeText(
+      text,
+      fontSize: fontSize,
+      bold: bold,
+      color: color ?? PdfColors.black,
+      alignment: alignment,
+    );
+  }
+
   pw.Widget _buildReportHeader() {
     return pw.Container(
       child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.end, // محاذاة لليمين
+        crossAxisAlignment: pw.CrossAxisAlignment.end,
         children: [
           _buildArabicText(
             'تقرير التكاليف',
@@ -247,11 +206,10 @@ class ExpenseCubit extends Cubit<ExpenseState> {
     );
   }
 
-  // بناء صفحة الإحصائيات محسنة
   pw.Widget _buildStatsPage(ExpenseStatsEntity stats, ProfitEntity? profit) {
     return pw.Container(
       child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.end, // محاذاة لليمين
+        crossAxisAlignment: pw.CrossAxisAlignment.end,
         children: [
           _buildArabicText(
             'الإحصائيات',
@@ -300,7 +258,6 @@ class ExpenseCubit extends Cubit<ExpenseState> {
     );
   }
 
-  // بناء عنصر إحصائي محسن
   pw.Widget _buildStatItem(String title, String value) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 10),
@@ -314,7 +271,6 @@ class ExpenseCubit extends Cubit<ExpenseState> {
     );
   }
 
-  // بناء قائمة التكاليف محسنة
   pw.Widget _buildExpensesList(List<ExpenseEntity> expenses) {
     return pw.Container(
       child: pw.Column(
@@ -365,7 +321,6 @@ class ExpenseCubit extends Cubit<ExpenseState> {
     );
   }
 
-  // بناء خلية رأس الجدول
   pw.Widget _buildTableHeaderCell(String text) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(12),
@@ -378,7 +333,6 @@ class ExpenseCubit extends Cubit<ExpenseState> {
     );
   }
 
-  // بناء خلية بيانات الجدول
   pw.Widget _buildTableCell(String text) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(8),
@@ -390,7 +344,6 @@ class ExpenseCubit extends Cubit<ExpenseState> {
     );
   }
 
-  // بناء صفحة تكلفة فردية محسنة
   pw.Widget _buildSingleExpensePage(ExpenseEntity expense) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(20),
@@ -433,7 +386,6 @@ class ExpenseCubit extends Cubit<ExpenseState> {
     );
   }
 
-  // بناء صف تفاصيل محسن
   pw.Widget _buildDetailRow(String label, String value) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 15),
@@ -513,10 +465,7 @@ class ExpenseCubit extends Cubit<ExpenseState> {
   // حفظ تقرير PDF شامل
   Future<void> generateAndSavePdfReport() async {
     try {
-      // الانتظار حتى يتم تحميل الخطوط إذا لم تكن محملة بعد
-      if (!_fontsLoaded) {
-        await _loadArabicFonts();
-      }
+      await _ensureFontsLoaded();
 
       final pdf = pw.Document();
 
@@ -576,9 +525,7 @@ class ExpenseCubit extends Cubit<ExpenseState> {
   // طباعة تقرير PDF
   Future<void> generatePdfReport() async {
     try {
-      if (!_fontsLoaded) {
-        await _loadArabicFonts();
-      }
+      await _ensureFontsLoaded();
 
       final pdf = pw.Document();
 
@@ -632,9 +579,7 @@ class ExpenseCubit extends Cubit<ExpenseState> {
   // حفظ تكلفة فردية كPDF
   Future<void> generateAndSaveSingleExpensePdf(ExpenseEntity expense) async {
     try {
-      if (!_fontsLoaded) {
-        await _loadArabicFonts();
-      }
+      await _ensureFontsLoaded();
 
       final pdf = pw.Document();
 
@@ -661,9 +606,7 @@ class ExpenseCubit extends Cubit<ExpenseState> {
   // طباعة تكلفة فردية
   Future<void> generateSingleExpensePdf(ExpenseEntity expense) async {
     try {
-      if (!_fontsLoaded) {
-        await _loadArabicFonts();
-      }
+      await _ensureFontsLoaded();
 
       final pdf = pw.Document();
 

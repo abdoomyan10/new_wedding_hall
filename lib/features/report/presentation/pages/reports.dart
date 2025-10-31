@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/dependencies.dart';
-import '../../../../injection_container.dart';
 import '../cubit/report_cubit.dart';
 import '../cubit/report_state.dart';
 import '../widgets/export_reports_dialog.dart';
@@ -32,11 +31,8 @@ class ReportsPage extends StatelessWidget {
               onPressed: () => ExportReportsDialog.show(context),
               tooltip: 'تصدير التقارير',
             ),
-          ],
-        ),
-        BlocBuilder<ReportCubit, ReportState>(
-          builder: (context, state) {
-            return PopupMenuButton<String>(
+            // زر تصدير PDF
+            PopupMenuButton<String>(
               icon: const Icon(Icons.picture_as_pdf),
               tooltip: 'تصدير PDF',
               onSelected: (value) {
@@ -79,23 +75,25 @@ class ReportsPage extends StatelessWidget {
                   ]),
                 ),
               ],
-            );
-          },
+            ),
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'تحديث البيانات',
+              onPressed: () => context.read<ReportCubit>().loadDailyReports(),
+            ),
+          ],
         ),
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          tooltip: 'تحديث البيانات',
-          onPressed: () => context.read<ReportCubit>().loadDailyReports(),
-        ),
-      ],
+        body: const _ReportsBody(),
+        floatingActionButton: _buildFloatingActionButton(context),
+      ),
     );
   }
 
   Widget _buildFloatingActionButton(BuildContext context) {
     return FloatingActionButton(
       onPressed: () => ExportReportsDialog.show(context),
-      backgroundColor: Colors.blue.shade700,
-      foregroundColor: Colors.white,
+      backgroundColor: AppColors.deepRed,
+      foregroundColor: AppColors.paleGold,
       child: const Icon(Icons.download),
     );
   }
@@ -140,7 +138,7 @@ class ReportsPage extends StatelessWidget {
             content: Text('تم إعداد التقرير للطباعة بنجاح'),
             backgroundColor: Colors.blue,
             behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }

@@ -1,4 +1,6 @@
 // features/expenses/presentation/widgets/add_expense_dialog.dart
+import 'dart:ui' as ui; // إضافة هذا الاستيراد
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -26,54 +28,73 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: Colors.white,
-      title: const Row(
-        children: [
-          Icon(Icons.add_circle, color: AppColors.deepRed),
-          SizedBox(width: 8),
-          Text('إضافة تكلفة جديدة', style: TextStyle(color: AppColors.gold)),
+    return Directionality(
+      textDirection: ui.TextDirection.rtl, // استخدام ui.TextDirection
+      child: AlertDialog(
+        backgroundColor: Colors.white,
+        title: const Row(
+          children: [
+            Icon(Icons.add_circle, color: AppColors.deepRed),
+            SizedBox(width: 8),
+            Text(
+              'إضافة تكلفة جديدة',
+              style: TextStyle(
+                color: AppColors.gold,
+                fontFamily: 'Tajawal',
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildDescriptionField(),
+                const SizedBox(height: 16),
+                _buildAmountField(),
+                const SizedBox(height: 16),
+                _buildWorkerField(),
+                const SizedBox(height: 16),
+                _buildCategoryField(),
+                const SizedBox(height: 16),
+                _buildDateField(),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'إلغاء',
+              style: TextStyle(
+                color: AppColors.gold,
+                fontFamily: 'Tajawal',
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: _saveExpense,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.deepRed,
+              foregroundColor: AppColors.gold,
+            ),
+            child: const Text(
+              'حفظ التكلفة',
+              style: TextStyle(fontFamily: 'Tajawal'),
+            ),
+          ),
         ],
       ),
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildDescriptionField(),
-              const SizedBox(height: 16),
-              _buildAmountField(),
-              const SizedBox(height: 16),
-              _buildWorkerField(),
-              const SizedBox(height: 16),
-              _buildCategoryField(),
-              const SizedBox(height: 16),
-              _buildDateField(),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('إلغاء', style: TextStyle(color: AppColors.gold)),
-        ),
-        ElevatedButton(
-          onPressed: _saveExpense,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.deepRed,
-            foregroundColor: AppColors.gold,
-          ),
-          child: const Text('حفظ التكلفة'),
-        ),
-      ],
     );
   }
 
   Widget _buildDescriptionField() {
     return TextFormField(
       controller: _descriptionController,
+      textDirection: ui.TextDirection.rtl, // استخدام ui.TextDirection
       decoration: const InputDecoration(
         floatingLabelStyle: TextStyle(color: AppColors.deepRed),
         labelText: 'وصف التكلفة',
@@ -97,6 +118,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   Widget _buildAmountField() {
     return TextFormField(
       controller: _amountController,
+      keyboardType: TextInputType.number,
+      textDirection: ui.TextDirection.rtl, // استخدام ui.TextDirection
       decoration: const InputDecoration(
         floatingLabelStyle: TextStyle(color: AppColors.deepRed),
         labelText: 'المبلغ (ر.س)',
@@ -108,7 +131,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           borderSide: BorderSide(color: AppColors.deepRed),
         ),
       ),
-      keyboardType: TextInputType.number,
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'يرجى إدخال المبلغ';
@@ -124,6 +146,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   Widget _buildWorkerField() {
     return TextFormField(
       controller: _workerNameController,
+      textDirection: ui.TextDirection.rtl, // استخدام ui.TextDirection
       decoration: const InputDecoration(
         floatingLabelStyle: TextStyle(color: AppColors.deepRed),
         labelText: 'اسم العامل',
@@ -159,7 +182,13 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         ),
       ),
       items: _categories.map((String category) {
-        return DropdownMenuItem<String>(value: category, child: Text(category));
+        return DropdownMenuItem<String>(
+          value: category,
+          child: Text(
+            category,
+            style: const TextStyle(fontFamily: 'Tajawal'),
+          ),
+        );
       }).toList(),
       onChanged: (String? newValue) {
         setState(() {
@@ -182,8 +211,11 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(DateFormat('yyyy-MM-dd').format(_selectedDate)),
             const Icon(Icons.arrow_drop_down, color: Colors.grey),
+            Text(
+              DateFormat('yyyy-MM-dd').format(_selectedDate),
+              style: const TextStyle(fontFamily: 'Tajawal'),
+            ),
           ],
         ),
       ),
@@ -214,7 +246,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         workerName: _workerNameController.text,
         category: _selectedCategory,
         createdAt: DateTime.now(),
-        title: _descriptionController.text, // ✅ استخدام الوصف كعنوان
+        title: _descriptionController.text,
       );
 
       context.read<ExpenseCubit>().addExpense(expense);
@@ -223,7 +255,10 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       // إظهار رسالة نجاح
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('تم إضافة التكلفة بنجاح'),
+          content: const Text(
+            'تم إضافة التكلفة بنجاح',
+            style: TextStyle(fontFamily: 'Tajawal'),
+          ),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
         ),
