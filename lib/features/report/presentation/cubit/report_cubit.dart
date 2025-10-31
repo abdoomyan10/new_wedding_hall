@@ -12,6 +12,7 @@ import 'package:open_file/open_file.dart';
 import 'package:intl/intl.dart';
 import 'package:new_wedding_hall/core/error/failure.dart';
 import 'package:new_wedding_hall/core/usecase/usecase.dart';
+import 'package:new_wedding_hall/core/utils/pdf_utils.dart';
 
 import '../../domain/entities/report_entity.dart';
 import '../../domain/entities/report_summary_entity.dart';
@@ -31,8 +32,6 @@ class ReportCubit extends Cubit<ReportState> {
   final GetReportSummaryUseCase getReportSummaryUseCase;
   final ExportReportsUseCase exportReportsUseCase;
 
-  // متغيرات لحفظ الخطوط العربية
-  pw.Font? _arabicFont;
   bool _fontsLoaded = false;
 
   ReportCubit({
@@ -43,74 +42,29 @@ class ReportCubit extends Cubit<ReportState> {
     required this.getReportSummaryUseCase,
     required this.exportReportsUseCase,
   }) : super(const ReportInitial()) {
-    _loadArabicFonts();
+    _initializeFonts();
   }
 
-  // ========== دوال PDF والطباعة المضافة ==========
-
-  // تحميل الخطوط العربية
-  Future<void> _loadArabicFonts() async {
+  Future<void> _initializeFonts() async {
     try {
-      debugPrint('🔄 بدء تحميل الخطوط العربية للتقرير...');
-
-      final List<String> fontPaths = [
-        'assets/fonts/NotoNaskhArabic-VariableFont_wght.ttf',
-        'assets/fonts/Amiri-Regular.ttf',
-        'assets/fonts/Tajawal-Regular.ttf',
-        'assets/fonts/NotoKufiArabic-VariableFont_wght.ttf',
-      ];
-
-      for (final path in fontPaths) {
-        try {
-          final fontData = await rootBundle.load(path);
-          _arabicFont = pw.Font.ttf(fontData);
-          debugPrint('✅ تم تحميل الخط العربي للتقرير: $path');
-          break;
-        } catch (e) {
-          debugPrint('❌ فشل تحميل الخط $path: $e');
-          continue;
-        }
-      }
-
-      if (_arabicFont == null) {
-        debugPrint('⚠️ استخدام الخط الافتراضي للتقرير');
-        _arabicFont = pw.Font.helvetica();
-      }
-
+      await PdfUtils.initialize();
       _fontsLoaded = true;
-      debugPrint('✅ تم تحميل الخطوط العربية للتقرير بنجاح');
-
+      debugPrint('✅ تم تهيئة الخطوط العربية في ReportCubit');
     } catch (e) {
-      debugPrint('❌ خطأ في تحميل الخطوط العربية للتقرير: $e');
+      debugPrint('❌ خطأ في تهيئة الخطوط: $e');
       _fontsLoaded = false;
-      _arabicFont = pw.Font.helvetica();
-      _fontsLoaded = true;
     }
   }
 
-  // دالة للحصول على النمط مع الخط العربي
-  pw.TextStyle _getTextStyle({double fontSize = 12, bool bold = false, PdfColor? color}) {
-    return pw.TextStyle(
-      font: _arabicFont,
-      fontSize: fontSize,
-      color: color,
-      fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-    );
-  }
-
-  // دالة لمعالجة النص العربي وضبط الاتجاه
-  pw.Widget _buildArabicText(String text, {double fontSize = 12, bool bold = false, PdfColor? color, pw.TextAlign alignment = pw.TextAlign.right}) {
-    return pw.Text(
-      text,
-      style: _getTextStyle(fontSize: fontSize, bold: bold, color: color),
-      textDirection: pw.TextDirection.rtl,
-      textAlign: alignment,
-    );
+  Future<void> _ensureFontsLoaded() async {
+    if (!_fontsLoaded) {
+      await PdfUtils.ensureReady();
+      _fontsLoaded = PdfUtils.isReady;
+    }
   }
 
   // ========== دوال إدارة الملفات والمجلدات ==========
 
-  // إنشاء مجلد SavedReports إذا لم يكن موجوداً
   Future<Directory> _getOrCreateReportFolder() async {
     try {
       Directory directory;
@@ -142,10 +96,13 @@ class ReportCubit extends Cubit<ReportState> {
     }
   }
 
-  // دالة مساعدة لحفظ الملف
+  String _cleanFileName(String fileName) {
+    return fileName.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+  }
+
   Future<String> _savePdfFile(pw.Document pdf, String fileName) async {
     try {
-      final cleanFileName = fileName.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+      final cleanFileName = _cleanFileName(fileName);
       final folder = await _getOrCreateReportFolder();
       final file = File('${folder.path}/$cleanFileName');
       final bytes = await pdf.save();
@@ -160,7 +117,6 @@ class ReportCubit extends Cubit<ReportState> {
     }
   }
 
-  // الحصول على قائمة ملفات PDF المحفوظة
   Future<List<File>> getSavedReportFiles() async {
     try {
       final folder = await _getOrCreateReportFolder();
@@ -178,7 +134,6 @@ class ReportCubit extends Cubit<ReportState> {
         }
       }
 
-      // ترتيب الملفات من الأحدث إلى الأقدم
       pdfFiles.sort((a, b) {
         try {
           final aStat = a.statSync();
@@ -197,7 +152,6 @@ class ReportCubit extends Cubit<ReportState> {
     }
   }
 
-  // حذف ملف PDF محفوظ
   Future<bool> deleteSavedReportFile(String filePath) async {
     try {
       final file = File(filePath);
@@ -215,9 +169,35 @@ class ReportCubit extends Cubit<ReportState> {
     }
   }
 
-  // ========== دوال إنشاء PDF مع دعم عربي ==========
+  // ========== دوال إنشاء PDF مع دعم عربي محسن ==========
 
-  // بناء رأس التقرير
+  pw.Widget _buildArabicText(String text, {
+    double fontSize = 12,
+    bool bold = false,
+    PdfColor? color,
+    pw.TextAlign alignment = pw.TextAlign.right
+  }) {
+    if (PdfUtils.isArabicTextSupported(text)) {
+      return PdfUtils.buildArabicText(
+        text,
+        fontSize: fontSize,
+        bold: bold,
+        color: color ?? PdfColors.black,
+        alignment: alignment,
+      );
+    } else {
+      return pw.Text(
+        text,
+        style: pw.TextStyle(
+          fontSize: fontSize,
+          fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+          color: color ?? PdfColors.black,
+        ),
+        textAlign: alignment,
+      );
+    }
+  }
+
   pw.Widget _buildReportHeader(ReportSummaryEntity summary, String period) {
     return pw.Container(
       child: pw.Column(
@@ -245,7 +225,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // بناء صفحة الإحصائيات
   pw.Widget _buildSummaryStats(ReportSummaryEntity summary) {
     return pw.Container(
       child: pw.Column(
@@ -268,7 +247,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // بناء عنصر إحصائي
   pw.Widget _buildStatItem(String title, String value) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 10),
@@ -282,7 +260,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // بناء قائمة التقارير
   pw.Widget _buildReportsList(List<ReportEntity> reports, String period) {
     return pw.Container(
       child: pw.Column(
@@ -305,7 +282,6 @@ class ReportCubit extends Cubit<ReportState> {
             },
             defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
             children: [
-              // رأس الجدول
               pw.TableRow(
                 decoration: pw.BoxDecoration(
                   color: PdfColors.grey300,
@@ -318,7 +294,6 @@ class ReportCubit extends Cubit<ReportState> {
                   _buildTableHeaderCell('عدد الحفلات'),
                 ],
               ),
-              // بيانات الجدول
               for (var report in reports)
                 pw.TableRow(
                   children: [
@@ -336,7 +311,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // بناء خلية رأس الجدول
   pw.Widget _buildTableHeaderCell(String text) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(12),
@@ -349,7 +323,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // بناء خلية بيانات الجدول
   pw.Widget _buildTableCell(String text) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(8),
@@ -361,7 +334,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // بناء صفحة تقرير فردية
   pw.Widget _buildSingleReportPage(ReportEntity report, String period) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(20),
@@ -406,7 +378,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // بناء صف تفاصيل
   pw.Widget _buildDetailRow(String label, String value) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 15),
@@ -431,7 +402,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // دوال مساعدة للنصوص والتواريخ
   String _getPeriodText(String period) {
     switch (period) {
       case 'daily':
@@ -464,12 +434,9 @@ class ReportCubit extends Cubit<ReportState> {
 
   // ========== الدوال الرئيسية للطباعة والحفظ ==========
 
-  // حفظ تقرير PDF شامل
   Future<void> generateAndSavePdfReport() async {
     try {
-      if (!_fontsLoaded) {
-        await _loadArabicFonts();
-      }
+      await _ensureFontsLoaded();
 
       if (state is! ReportLoaded) {
         throw Exception('❌ لا توجد تقارير محملة');
@@ -485,7 +452,6 @@ class ReportCubit extends Cubit<ReportState> {
 
       final pdf = pw.Document();
 
-      // إضافة صفحة العنوان
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
@@ -498,7 +464,6 @@ class ReportCubit extends Cubit<ReportState> {
         ),
       );
 
-      // إضافة صفحة الإحصائيات
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
@@ -511,7 +476,6 @@ class ReportCubit extends Cubit<ReportState> {
         ),
       );
 
-      // إضافة صفحة التقارير
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
@@ -529,21 +493,17 @@ class ReportCubit extends Cubit<ReportState> {
 
       debugPrint('✅ تم إنشاء وحفظ التقرير بنجاح: $filePath');
 
-      // فتح الملف بعد حفظه
       await OpenFile.open(filePath);
 
     } catch (e) {
       debugPrint('❌ خطأ في إنشاء تقرير PDF: $e');
-      throw e; // إعادة رمي الاستثناء للتعامل معه في الواجهة
+      throw e;
     }
   }
 
-  // طباعة تقرير PDF
   Future<void> generatePdfReport() async {
     try {
-      if (!_fontsLoaded) {
-        await _loadArabicFonts();
-      }
+      await _ensureFontsLoaded();
 
       if (state is! ReportLoaded) {
         throw Exception('❌ لا توجد تقارير محملة');
@@ -600,12 +560,9 @@ class ReportCubit extends Cubit<ReportState> {
     }
   }
 
-  // حفظ تقرير فردي كPDF
   Future<void> generateAndSaveSingleReportPdf(ReportEntity report) async {
     try {
-      if (!_fontsLoaded) {
-        await _loadArabicFonts();
-      }
+      await _ensureFontsLoaded();
 
       if (state is! ReportLoaded) {
         throw Exception('❌ لا توجد تقارير محملة');
@@ -628,7 +585,6 @@ class ReportCubit extends Cubit<ReportState> {
 
       debugPrint('✅ تم حفظ التقرير الفردي بنجاح: $filePath');
 
-      // فتح الملف بعد حفظه
       await OpenFile.open(filePath);
 
     } catch (e) {
@@ -637,12 +593,9 @@ class ReportCubit extends Cubit<ReportState> {
     }
   }
 
-  // طباعة تقرير فردي
   Future<void> generateSingleReportPdf(ReportEntity report) async {
     try {
-      if (!_fontsLoaded) {
-        await _loadArabicFonts();
-      }
+      await _ensureFontsLoaded();
 
       if (state is! ReportLoaded) {
         throw Exception('❌ لا توجد تقارير محملة');
@@ -674,7 +627,6 @@ class ReportCubit extends Cubit<ReportState> {
 
   // ========== دوال التحميل الحالية ==========
 
-  // تحميل التقارير اليومية
   Future<void> loadDailyReports() async {
     emit(const ReportLoading());
 
@@ -705,7 +657,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // تحميل التقارير الأسبوعية
   Future<void> loadWeeklyReports() async {
     emit(const ReportLoading());
 
@@ -736,7 +687,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // تحميل التقارير الشهرية
   Future<void> loadMonthlyReports() async {
     emit(const ReportLoading());
 
@@ -767,7 +717,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // تحميل التقارير السنوية
   Future<void> loadYearlyReports() async {
     emit(const ReportLoading());
 
@@ -798,7 +747,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // تحميل الملخص فقط
   Future<void> loadReportSummary(String period) async {
     final result = await getReportSummaryUseCase(period);
 
@@ -823,7 +771,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // تصدير التقارير كـ PDF
   Future<void> exportToPdf() async {
     if (state is! ReportLoaded) {
       _showExportError('لا توجد تقارير لتصديرها');
@@ -859,7 +806,6 @@ class ReportCubit extends Cubit<ReportState> {
     }
   }
 
-  // تصدير التقارير كـ Excel
   Future<void> exportToExcel() async {
     if (state is! ReportLoaded) {
       _showExportError('لا توجد تقارير لتصديرها');
@@ -895,7 +841,6 @@ class ReportCubit extends Cubit<ReportState> {
     }
   }
 
-  // تصدير التقارير مع تحديد التنسيق
   Future<void> exportReports(ExportFormat format) async {
     if (state is! ReportLoaded) {
       _showExportError('لا توجد تقارير لتصديرها');
@@ -932,7 +877,6 @@ class ReportCubit extends Cubit<ReportState> {
     }
   }
 
-  // تحديث تقرير محدد
   void updateReport(ReportEntity updatedReport) {
     if (state is! ReportLoaded) return;
 
@@ -952,7 +896,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // إضافة تقرير جديد
   void addReport(ReportEntity newReport) {
     if (state is! ReportLoaded) return;
 
@@ -969,7 +912,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // حذف تقرير
   void deleteReport(String reportId) {
     if (state is! ReportLoaded) return;
 
@@ -988,7 +930,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // حساب الملخص الإجمالي من التقارير
   ReportSummaryEntity _calculateSummary(List<ReportEntity> reports) {
     if (reports.isEmpty) {
       return const ReportSummaryEntity(
@@ -1029,7 +970,6 @@ class ReportCubit extends Cubit<ReportState> {
     );
   }
 
-  // تحويل Failure إلى رسالة خطأ
   String _mapFailureToMessage(Failure failure) {
     switch (failure.runtimeType) {
       case ServerFailure:
@@ -1043,7 +983,6 @@ class ReportCubit extends Cubit<ReportState> {
     }
   }
 
-  // عرض رسائل الخطأ
   void _showExportError(String message) {
     debugPrint('❌ خطأ في التصدير: $message');
   }
@@ -1052,7 +991,6 @@ class ReportCubit extends Cubit<ReportState> {
     debugPrint('✅ نجاح: $message');
   }
 
-  // الحصول على التقارير الحالية
   List<ReportEntity> get currentReports {
     if (state is ReportLoaded) {
       return (state as ReportLoaded).reports;
@@ -1060,7 +998,6 @@ class ReportCubit extends Cubit<ReportState> {
     return [];
   }
 
-  // الحصول على الملخص الحالي
   ReportSummaryEntity? get currentSummary {
     if (state is ReportLoaded) {
       return (state as ReportLoaded).summary;
@@ -1068,7 +1005,6 @@ class ReportCubit extends Cubit<ReportState> {
     return null;
   }
 
-  // الحصول على الفترة المحددة حالياً
   String get currentPeriod {
     if (state is ReportLoaded) {
       return (state as ReportLoaded).selectedPeriod;
@@ -1076,10 +1012,20 @@ class ReportCubit extends Cubit<ReportState> {
     return 'daily';
   }
 
-  // تنظيف الموارد عند إغلاق Cubit
+  // دالة لاختبار الخطوط العربية
+  Future<void> testArabicFonts() async {
+    debugPrint('🔍 بدء اختبار الخطوط العربية...');
+    await _ensureFontsLoaded();
+
+    if (_fontsLoaded) {
+      debugPrint('🎉 الخطوط العربية محملة وجاهزة للاستخدام!');
+    } else {
+      debugPrint('❌ هناك مشكلة في تحميل الخطوط العربية');
+    }
+  }
+
   @override
   Future<void> close() {
-    _arabicFont = null;
     return super.close();
   }
 }

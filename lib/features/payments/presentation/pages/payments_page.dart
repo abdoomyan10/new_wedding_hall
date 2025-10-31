@@ -21,6 +21,8 @@ class PaymentsPage extends StatefulWidget {
 
 class _PaymentsPageState extends State<PaymentsPage> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  bool _showSearchBar = false;
 
   @override
   void initState() {
@@ -39,62 +41,114 @@ class _PaymentsPageState extends State<PaymentsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: _showSearchBar
+            ? TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: 'ابحث في المدفوعات...',
+            hintStyle: const TextStyle(color: AppColors.gray500),
+            border: InputBorder.none,
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                setState(() {
+                  _showSearchBar = false;
+                  _searchController.clear();
+                  context.read<PaymentCubit>().loadPayments();
+                });
+              },
+            ),
+          ),
+          style: const TextStyle(color: AppColors.black),
+          onChanged: (value) {
+            context.read<PaymentCubit>().searchPayments(value);
+          },
+        )
+            : const Text(
+          'إدارة المدفوعات',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: AppColors.paleGold,
+          ),
+        ),
+        backgroundColor: AppColors.deepRed,
+        elevation: 4,
+        actions: [
+          if (!_showSearchBar)
+            IconButton(
+              icon: const Icon(Icons.search, color: AppColors.paleGold),
+              onPressed: () {
+                setState(() {
+                  _showSearchBar = true;
+                });
+              },
+            ),
+          // زر التقارير المحفوظة
+          IconButton(
+            icon: const Icon(Icons.folder, color: AppColors.paleGold),
+            tooltip: 'التقارير المحفوظة',
+            onPressed: () => _navigateToSavedReports(context),
+          ),
+          // زر تصدير PDF مع حفظ على الجهاز
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.picture_as_pdf, color: AppColors.paleGold),
+            tooltip: 'تصدير PDF',
+            onSelected: (value) {
+              if (value == 'save_report') {
+                _savePdfReport(context);
+              } else if (value == 'print_report') {
+                _printPdfReport(context);
+              } else if (value == 'saved_reports') {
+                _navigateToSavedReports(context);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'save_report',
+                child: Row(
+                  children: [
+                    Icon(Icons.save, color: Colors.green),
+                    SizedBox(width: 8),
+                    Text('حفظ PDF على الجهاز'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'print_report',
+                child: Row(
+                  children: [
+                    Icon(Icons.print, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Text('طباعة مباشرة'),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'saved_reports',
+                child: Row(
+                  children: [
+                    Icon(Icons.folder_open, color: Colors.orange),
+                    SizedBox(width: 8),
+                    Text('التقارير المحفوظة'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh, color: AppColors.paleGold),
+            tooltip: 'تحديث البيانات',
+            onPressed: () => context.read<PaymentCubit>().loadPayments(),
+          ),
+        ],
+      ),
       body: NestedScrollView(
         controller: _scrollController,
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
-            // App Bar مع البحث
-            SliverAppBar(
-              title: _showSearchBar
-                  ? TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'ابحث في المدفوعات...',
-                        hintStyle: const TextStyle(color: AppColors.gray500),
-                        border: InputBorder.none,
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () {
-                            setState(() {
-                              _showSearchBar = false;
-                              _searchController.clear();
-                            });
-                          },
-                        ),
-                      ),
-                      style: const TextStyle(color: AppColors.black),
-                      onChanged: (value) {
-                        // TODO: تطبيق البحث
-                        context.read<PaymentCubit>().searchPayments(value);
-                      },
-                    )
-                  : const Text(
-                      'إدارة المدفوعات',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        color: AppColors.paleGold,
-                      ),
-                    ),
-              backgroundColor: AppColors.deepRed,
-              floating: true,
-              snap: true,
-              pinned: true,
-              elevation: 4,
-              forceElevated: innerBoxIsScrolled,
-              actions: [
-                if (!_showSearchBar)
-                  IconButton(
-                    icon: const Icon(Icons.search, color: AppColors.paleGold),
-                    onPressed: () {
-                      setState(() {
-                        _showSearchBar = true;
-                      });
-                    },
-                  ),
-              ],
-            ),
-
             // قسم الإحصائيات
             const SliverToBoxAdapter(child: PaymentStatsSection()),
 
@@ -175,10 +229,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
             children: [
               // زر التصدير
               OutlinedButton.icon(
-                onPressed: () {
-                  // TODO: تطبيق تصدير البيانات
-                  _showExportOptions();
-                },
+                onPressed: _showExportOptions,
                 icon: const Icon(Icons.download, size: 18),
                 label: const Text('تصدير'),
                 style: OutlinedButton.styleFrom(
@@ -216,69 +267,6 @@ class _PaymentsPageState extends State<PaymentsPage> {
           ),
         ),
       ),
-      backgroundColor: Colors.blue.shade700,
-      foregroundColor: Colors.white,
-      elevation: 2,
-      actions: [
-        // زر التقارير المحفوظة
-        IconButton(
-          icon: const Icon(Icons.folder),
-          tooltip: 'التقارير المحفوظة',
-          onPressed: () => _navigateToSavedReports(context),
-        ),
-        // زر تصدير PDF مع حفظ على الجهاز
-        PopupMenuButton<String>(
-          icon: const Icon(Icons.picture_as_pdf),
-          tooltip: 'تصدير PDF',
-          onSelected: (value) {
-            if (value == 'save_report') {
-              _savePdfReport(context);
-            } else if (value == 'print_report') {
-              _printPdfReport(context);
-            } else if (value == 'saved_reports') {
-              _navigateToSavedReports(context);
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'save_report',
-              child: Row(
-                children: [
-                  Icon(Icons.save, color: Colors.green),
-                  SizedBox(width: 8),
-                  Text('حفظ PDF على الجهاز'),
-                ],
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'print_report',
-              child: Row(
-                children: [
-                  Icon(Icons.print, color: Colors.blue),
-                  SizedBox(width: 8),
-                  Text('طباعة مباشرة'),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(),
-            const PopupMenuItem(
-              value: 'saved_reports',
-              child: Row(
-                children: [
-                  Icon(Icons.folder_open, color: Colors.orange),
-                  SizedBox(width: 8),
-                  Text('التقارير المحفوظة'),
-                ],
-              ),
-            ),
-          ],
-        ),
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          tooltip: 'تحديث البيانات',
-          onPressed: () => context.read<PaymentCubit>().loadPayments(),
-        ),
-      ],
     );
   }
 
@@ -319,7 +307,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  // TODO: تطبيق تصدير PDF
+                  _savePdfReport(context);
                 },
               ),
               ListTile(
@@ -350,58 +338,8 @@ class _PaymentsPageState extends State<PaymentsPage> {
               ),
             ],
           ),
-
-          // التصفية السريعة
-          const SliverToBoxAdapter(
-            child: PaymentFilters(),
-          ),
-
-          // عنوان قائمة المدفوعات
-          SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              color: Colors.white,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'قائمة المدفوعات',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.black,
-                    ),
-                  ),
-                  BlocBuilder<PaymentCubit, PaymentState>(
-                    builder: (context, state) {
-                      if (state is PaymentLoaded) {
-                        return Text(
-                          '${state.payments.length} دفعة',
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 14,
-                          ),
-                        );
-                      }
-                      return const SizedBox();
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ];
+        );
       },
-      body: const PaymentsList(),
-    );
-  }
-
-  Widget _buildFloatingActionButton(BuildContext context) {
-    return FloatingActionButton(
-      onPressed: _showAddPaymentDialog,
-      backgroundColor: Colors.blue.shade700,
-      foregroundColor: Colors.white,
-      child: const Icon(Icons.add, size: 28),
     );
   }
 
@@ -443,6 +381,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 }

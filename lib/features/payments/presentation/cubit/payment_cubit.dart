@@ -22,8 +22,6 @@ import '../../domain/usecases/delete_payment_usecase.dart';
 
 // استيراد PdfUtils
 import '../../../../core/utils/pdf_utils.dart';
-// استيراد PdfStorageService
-import '../../../../core/services/pdf_storage_service.dart';
 
 part 'payment_state.dart';
 
@@ -83,19 +81,104 @@ class PaymentCubit extends Cubit<PaymentState> {
   }
 
   // ========== دوال إدارة الملفات والمجلدات ==========
+  // ... (بقية الدوال تبقى كما هي بدون تغيير)
+
+  Future<Directory> _getOrCreatePaymentReportsFolder() async {
+    try {
+      Directory directory;
+
+      try {
+        directory = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
+      } catch (e) {
+        directory = await getApplicationDocumentsDirectory();
+      }
+
+      final paymentReportsFolder = Directory('${directory.path}/PaymentReports');
+
+      if (!await paymentReportsFolder.exists()) {
+        await paymentReportsFolder.create(recursive: true);
+        debugPrint('تم إنشاء مجلد PaymentReports في: ${paymentReportsFolder.path}');
+      }
+
+      return paymentReportsFolder;
+    } catch (e) {
+      debugPrint('خطأ في إنشاء المجلد: $e');
+      final docsDirectory = await getApplicationDocumentsDirectory();
+      final fallbackFolder = Directory('${docsDirectory.path}/PaymentReports');
+
+      if (!await fallbackFolder.exists()) {
+        await fallbackFolder.create(recursive: true);
+      }
+
+      return fallbackFolder;
+    }
+  }
+
+  Future<String> _savePdfFile(pw.Document pdf, String fileName) async {
+    try {
+      final cleanFileName = _cleanFileName(fileName);
+      final folder = await _getOrCreatePaymentReportsFolder();
+      final file = File('${folder.path}/$cleanFileName');
+      final bytes = await pdf.save();
+      await file.writeAsBytes(bytes);
+
+      debugPrint('✅ تم حفظ ملف الدفع بنجاح في: ${file.path}');
+      return file.path;
+    } catch (e) {
+      debugPrint('❌ خطأ في حفظ ملف الدفع: $e');
+      throw Exception('فشل في حفظ ملف الدفع: $e');
+    }
+  }
+
+  String _cleanFileName(String fileName) {
+    return fileName.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+  }
 
   Future<List<File>> getSavedPdfFiles() async {
     try {
-      return await PdfStorageService.getSavedPdfFiles();
+      final folder = await _getOrCreatePaymentReportsFolder();
+      if (!await folder.exists()) {
+        return [];
+      }
+
+      final List<FileSystemEntity> entities = await folder.list().toList();
+      final List<File> pdfFiles = [];
+
+      for (final entity in entities) {
+        if (entity is File && entity.path.toLowerCase().endsWith('.pdf')) {
+          pdfFiles.add(entity);
+        }
+      }
+
+      pdfFiles.sort((a, b) {
+        try {
+          final aStat = a.statSync();
+          final bStat = b.statSync();
+          return bStat.modified.compareTo(aStat.modified);
+        } catch (e) {
+          return 0;
+        }
+      });
+
+      debugPrint('📁 تم العثور على ${pdfFiles.length} ملف PDF للمدفوعات');
+      return pdfFiles;
     } catch (e) {
       debugPrint('❌ خطأ في جلب ملفات المدفوعات المحفوظة: $e');
-      return [];
+      throw Exception('فشل في جلب ملفات المدفوعات المحفوظة: $e');
     }
   }
 
   Future<bool> deleteSavedPdfFile(String filePath) async {
     try {
-      return await PdfStorageService.deleteSavedPdfFile(filePath);
+      final file = File(filePath);
+      if (await file.exists()) {
+        await file.delete();
+        debugPrint('✅ تم حذف ملف الدفع: $filePath');
+        return true;
+      } else {
+        debugPrint('⚠️ ملف الدفع غير موجود: $filePath');
+        return false;
+      }
     } catch (e) {
       debugPrint('❌ خطأ في حذف ملف الدفع: $e');
       return false;
@@ -157,15 +240,13 @@ class PaymentCubit extends Cubit<PaymentState> {
       }
 
       final fileName = 'تقرير_المدفوعات_${DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now())}.pdf';
-      final filePath = await PdfStorageService.savePdfToDevice(pdf, fileName);
+      final filePath = await _savePdfFile(pdf, fileName);
 
       // فتح الملف بعد حفظه
       await OpenFile.open(filePath);
 
-      debugPrint('✅ تم إنشاء وحفظ تقرير PDF بنجاح: $filePath');
-
     } catch (e) {
-      debugPrint('❌ خطأ في إنشاء تقرير المدفوعات: $e');
+      debugPrint('خطأ في إنشاء تقرير المدفوعات: $e');
     }
   }
 
@@ -217,18 +298,11 @@ class PaymentCubit extends Cubit<PaymentState> {
         );
       }
 
-      // حفظ الملف أولاً ثم المعاينة
-      final fileName = 'تقرير_المدفوعات_${DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now())}.pdf';
-      final filePath = await PdfStorageService.savePdfToDevice(pdf, fileName);
-      debugPrint('✅ تم حفظ التقرير تلقائياً في: $filePath');
-
-      // معاينة الملف المحفوظ
       await Printing.layoutPdf(
         onLayout: (PdfPageFormat format) async => pdf.save(),
       );
-
     } catch (e) {
-      debugPrint('❌ خطأ في طباعة تقرير المدفوعات: $e');
+      debugPrint('خطأ في طباعة تقرير المدفوعات: $e');
     }
   }
 
@@ -253,7 +327,7 @@ class PaymentCubit extends Cubit<PaymentState> {
       );
 
       final fileName = 'دفعة_${_cleanName(payment.clientName)}_${DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now())}.pdf';
-      final filePath = await PdfStorageService.savePdfToDevice(pdf, fileName);
+      final filePath = await _savePdfFile(pdf, fileName);
 
       // فتح الملف بعد حفظه
       await OpenFile.open(filePath);
@@ -283,11 +357,6 @@ class PaymentCubit extends Cubit<PaymentState> {
           },
         ),
       );
-
-      // حفظ الملف تلقائياً قبل الطباعة
-      final fileName = 'دفعة_${_cleanName(payment.clientName)}_${DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now())}.pdf';
-      final filePath = await PdfStorageService.savePdfToDevice(pdf, fileName);
-      debugPrint('✅ تم حفظ الدفعة تلقائياً في: $filePath');
 
       await Printing.layoutPdf(
         onLayout: (PdfPageFormat format) async => pdf.save(),

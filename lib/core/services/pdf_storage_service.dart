@@ -1,14 +1,14 @@
 // core/services/pdf_storage_service.dart
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/cupertino.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:open_file/open_file.dart';
 
 class PdfStorageService {
-  static Future<String?> savePdfToDevice(
-    Uint8List pdfBytes,
-    String fileName,
-  ) async {
+  // دالة مساعدة لإنشاء مجلد التقارير
+  static Future<Directory> _getOrCreatePaymentReportsFolder() async {
     try {
       Directory directory;
       if (Platform.isAndroid) {
@@ -16,9 +16,7 @@ class PdfStorageService {
         try {
           directory = Directory('/storage/emulated/0/Download');
           if (!await directory.exists()) {
-            directory =
-                await getExternalStorageDirectory() ??
-                await getApplicationDocumentsDirectory();
+            directory = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
           }
         } catch (e) {
           directory = await getApplicationDocumentsDirectory();
@@ -26,14 +24,17 @@ class PdfStorageService {
       } else if (Platform.isIOS) {
         directory = await getApplicationDocumentsDirectory();
       } else {
-        directory =
-            await getDownloadsDirectory() ??
-            await getApplicationDocumentsDirectory();
+        directory = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
+      }
+
+      // إنشاء مجلد PaymentReports داخل المجلد الرئيسي
+      final paymentReportsFolder = Directory('${directory.path}/PaymentReports');
+      if (!await paymentReportsFolder.exists()) {
+        await paymentReportsFolder.create(recursive: true);
       }
 
       return paymentReportsFolder;
     } catch (e) {
-      print('❌ خطأ في إنشاء المجلد: $e');
       // استخدام getTemporaryDirectory كبديل
       final tempDirectory = await getTemporaryDirectory();
       final fallbackFolder = Directory('${tempDirectory.path}/PaymentReports');
@@ -46,6 +47,7 @@ class PdfStorageService {
     }
   }
 
+  // الدالة الرئيسية لحفظ PDF
   static Future<String> savePdfToDevice(pw.Document pdf, String fileName) async {
     try {
       final cleanFileName = _cleanFileName(fileName);
@@ -54,20 +56,46 @@ class PdfStorageService {
       final bytes = await pdf.save();
       await file.writeAsBytes(bytes);
 
-      print('✅ تم حفظ ملف PDF بنجاح في: ${file.path}');
+      debugPrint('✅ تم حفظ ملف PDF بنجاح في: ${file.path}');
       return file.path;
     } catch (e) {
-      print('❌ خطأ في حفظ ملف PDF: $e');
+      debugPrint('❌ خطأ في حفظ ملف PDF: $e');
       // محاولة بديلة باستخدام Temporary Directory
       try {
         final tempDir = await getTemporaryDirectory();
         final tempFile = File('${tempDir.path}/${_cleanFileName(fileName)}');
         final bytes = await pdf.save();
         await tempFile.writeAsBytes(bytes);
-        print('✅ تم حفظ ملف PDF في المجلد المؤقت: ${tempFile.path}');
+        debugPrint('✅ تم حفظ ملف PDF في المجلد المؤقت: ${tempFile.path}');
         return tempFile.path;
       } catch (fallbackError) {
-        print('❌ فشل الحفظ في المجلد المؤقت: $fallbackError');
+        debugPrint('❌ فشل الحفظ في المجلد المؤقت: $fallbackError');
+        throw Exception('فشل في حفظ ملف PDF: $e');
+      }
+    }
+  }
+
+  // دالة بديلة لحفظ PDF من Uint8List (إذا كنت تحتاجها)
+  static Future<String> savePdfBytesToDevice(Uint8List pdfBytes, String fileName) async {
+    try {
+      final cleanFileName = _cleanFileName(fileName);
+      final folder = await _getOrCreatePaymentReportsFolder();
+      final file = File('${folder.path}/$cleanFileName');
+      await file.writeAsBytes(pdfBytes);
+
+      debugPrint('✅ تم حفظ ملف PDF بنجاح في: ${file.path}');
+      return file.path;
+    } catch (e) {
+      debugPrint('❌ خطأ في حفظ ملف PDF: $e');
+      // محاولة بديلة باستخدام Temporary Directory
+      try {
+        final tempDir = await getTemporaryDirectory();
+        final tempFile = File('${tempDir.path}/${_cleanFileName(fileName)}');
+        await tempFile.writeAsBytes(pdfBytes);
+        debugPrint('✅ تم حفظ ملف PDF في المجلد المؤقت: ${tempFile.path}');
+        return tempFile.path;
+      } catch (fallbackError) {
+        debugPrint('❌ فشل الحفظ في المجلد المؤقت: $fallbackError');
         throw Exception('فشل في حفظ ملف PDF: $e');
       }
     }
@@ -107,10 +135,10 @@ class PdfStorageService {
         }
       });
 
-      print('📁 تم العثور على ${pdfFiles.length} ملف PDF للمدفوعات');
+      debugPrint('📁 تم العثور على ${pdfFiles.length} ملف PDF للمدفوعات');
       return pdfFiles;
     } catch (e) {
-      print('❌ خطأ في جلب ملفات المدفوعات المحفوظة: $e');
+      debugPrint('❌ خطأ في جلب ملفات المدفوعات المحفوظة: $e');
       // إرجاع قائمة فارغة بدلاً من إلقاء استثناء
       return [];
     }
@@ -121,14 +149,14 @@ class PdfStorageService {
       final file = File(filePath);
       if (await file.exists()) {
         await file.delete();
-        print('✅ تم حذف ملف PDF: $filePath');
+        debugPrint('✅ تم حذف ملف PDF: $filePath');
         return true;
       } else {
-        print('⚠️ ملف PDF غير موجود: $filePath');
+        debugPrint('⚠️ ملف PDF غير موجود: $filePath');
         return false;
       }
     } catch (e) {
-      print('❌ خطأ في حذف ملف PDF: $e');
+      debugPrint('❌ خطأ في حذف ملف PDF: $e');
       return false;
     }
   }
@@ -137,7 +165,7 @@ class PdfStorageService {
     try {
       await OpenFile.open(filePath);
     } catch (e) {
-      print('❌ خطأ في فتح ملف PDF: $e');
+      debugPrint('❌ خطأ في فتح ملف PDF: $e');
       throw Exception('فشل في فتح ملف PDF: $e');
     }
   }
@@ -149,6 +177,28 @@ class PdfStorageService {
       return await file.exists();
     } catch (e) {
       return false;
+    }
+  }
+
+  // دالة لمسح جميع ملفات PDF القديمة (اختيارية)
+  static Future<void> clearOldPdfFiles({int days = 30}) async {
+    try {
+      final files = await getSavedPdfFiles();
+      final cutoffDate = DateTime.now().subtract(Duration(days: days));
+
+      for (final file in files) {
+        try {
+          final stat = file.statSync();
+          if (stat.modified.isBefore(cutoffDate)) {
+            await file.delete();
+            debugPrint('🗑️ تم حذف الملف القديم: ${file.path}');
+          }
+        } catch (e) {
+          debugPrint('⚠️ خطأ في معالجة الملف: ${file.path} - $e');
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ خطأ في مسح الملفات القديمة: $e');
     }
   }
 }
