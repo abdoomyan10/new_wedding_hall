@@ -1,6 +1,6 @@
 // features/payments/presentation/cubit/payment_cubit.dart
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide debugPrint;
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf/pdf.dart';
@@ -32,7 +32,6 @@ class PaymentCubit extends Cubit<PaymentState> {
   final DeletePaymentUseCase deletePaymentUseCase;
   final GetPaymentStatsUseCase getPaymentStatsUseCase;
 
-  // إزالة متغيرات الخطوط القديمة
   bool _fontsLoaded = false;
 
   // قائمة مؤقتة للبحث (سيتم استبدالها بالبيانات الفعلية من use case)
@@ -45,43 +44,28 @@ class PaymentCubit extends Cubit<PaymentState> {
     required this.deletePaymentUseCase,
     required this.getPaymentStatsUseCase,
   }) : super(PaymentInitial()) {
-    _loadArabicFonts();
+    _initializeFonts();
   }
 
-  // تحميل الخطوط العربية باستخدام PdfUtils
-  Future<void> _loadArabicFonts() async {
+  Future<void> _initializeFonts() async {
     try {
       await PdfUtils.initialize();
       _fontsLoaded = PdfUtils.isReady;
-      debugPrint('✅ حالة تحميل الخطوط: $_fontsLoaded');
+      debugPrint('✅ تم تهيئة الخطوط في PaymentCubit - الحالة: $_fontsLoaded');
     } catch (e) {
-      debugPrint('❌ خطأ في تحميل الخطوط العربية: $e');
-      _fontsLoaded = false;
+      debugPrint('⚠️ استخدام خطوط بديلة في PaymentCubit: $e');
+      _fontsLoaded = true; // نعتبرها محملة لاستخدام الخطوط البديلة
     }
   }
 
-  // دالة محسنة للحصول على النمط مع الخط العربي
-  pw.TextStyle _getTextStyle({double fontSize = 12, bool bold = false, PdfColor? color}) {
-    return PdfUtils.getArabicTextStyle(
-      fontSize: fontSize,
-      fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-      color: color ?? PdfColors.black,
-    );
-  }
-
-  // دالة جديدة لمعالجة النص العربي وضبط الاتجاه
-  pw.Widget buildArabicText(String text, {double fontSize = 12, bool bold = false, PdfColor? color, pw.TextAlign alignment = pw.TextAlign.right}) {
-    return PdfUtils.buildArabicText(
-      text,
-      fontSize: fontSize,
-      bold: bold,
-      color: color ?? PdfColors.black,
-      alignment: alignment,
-    );
+  Future<void> _ensureFontsLoaded() async {
+    if (!_fontsLoaded) {
+      await PdfUtils.ensureReady();
+      _fontsLoaded = PdfUtils.isReady;
+    }
   }
 
   // ========== دوال إدارة الملفات والمجلدات ==========
-  // ... (بقية الدوال تبقى كما هي بدون تغيير)
 
   Future<Directory> _getOrCreatePaymentReportsFolder() async {
     try {
@@ -187,12 +171,29 @@ class PaymentCubit extends Cubit<PaymentState> {
 
   // ========== دوال إنشاء PDF للمدفوعات ==========
 
+  // دالة محسنة لبناء النص العربي
+  pw.Widget _buildArabicText(String text, {
+    double fontSize = 12,
+    bool bold = false,
+    PdfColor? color,
+    pw.TextAlign alignment = pw.TextAlign.right
+  }) {
+    return PdfUtils.buildArabicText(
+      text,
+      fontSize: fontSize,
+      bold: bold,
+      color: color ?? PdfColors.black,
+      alignment: alignment,
+    );
+  }
+
   // حفظ تقرير PDF شامل
   Future<void> generateAndSavePdfReport() async {
     try {
-      // الانتظار حتى يتم تحميل الخطوط إذا لم تكن محملة بعد
+      await _ensureFontsLoaded();
+
       if (!_fontsLoaded) {
-        await _loadArabicFonts();
+        debugPrint('⚠️ تحذير: استخدام خطوط بديلة - قد يكون العرض غير مثالي');
       }
 
       final pdf = pw.Document();
@@ -246,15 +247,18 @@ class PaymentCubit extends Cubit<PaymentState> {
       await OpenFile.open(filePath);
 
     } catch (e) {
-      debugPrint('خطأ في إنشاء تقرير المدفوعات: $e');
+      debugPrint('❌ خطأ في إنشاء تقرير المدفوعات: $e');
+      throw e;
     }
   }
 
   // طباعة تقرير PDF
   Future<void> generatePdfReport() async {
     try {
+      await _ensureFontsLoaded();
+
       if (!_fontsLoaded) {
-        await _loadArabicFonts();
+        debugPrint('⚠️ تحذير: استخدام خطوط بديلة - قد يكون العرض غير مثالي');
       }
 
       final pdf = pw.Document();
@@ -302,7 +306,8 @@ class PaymentCubit extends Cubit<PaymentState> {
         onLayout: (PdfPageFormat format) async => pdf.save(),
       );
     } catch (e) {
-      debugPrint('خطأ في طباعة تقرير المدفوعات: $e');
+      debugPrint('❌ خطأ في طباعة تقرير المدفوعات: $e');
+      throw e;
     }
   }
 
@@ -310,9 +315,10 @@ class PaymentCubit extends Cubit<PaymentState> {
 
   Future<void> generateAndSaveSinglePaymentPdf(PaymentEntity payment) async {
     try {
-      // الانتظار حتى يتم تحميل الخطوط إذا لم تكن محملة بعد
+      await _ensureFontsLoaded();
+
       if (!_fontsLoaded) {
-        await _loadArabicFonts();
+        debugPrint('⚠️ تحذير: استخدام خطوط بديلة - قد يكون العرض غير مثالي');
       }
 
       final pdf = pw.Document();
@@ -343,8 +349,10 @@ class PaymentCubit extends Cubit<PaymentState> {
 
   Future<void> generateSinglePaymentPdf(PaymentEntity payment) async {
     try {
+      await _ensureFontsLoaded();
+
       if (!_fontsLoaded) {
-        await _loadArabicFonts();
+        debugPrint('⚠️ تحذير: استخدام خطوط بديلة - قد يكون العرض غير مثالي');
       }
 
       final pdf = pw.Document();
@@ -362,7 +370,7 @@ class PaymentCubit extends Cubit<PaymentState> {
         onLayout: (PdfPageFormat format) async => pdf.save(),
       );
     } catch (e) {
-      debugPrint('خطأ في طباعة تفاصيل الدفعة: $e');
+      debugPrint('❌ خطأ في طباعة تفاصيل الدفعة: $e');
       throw Exception('فشل في طباعة تفاصيل الدفعة: $e');
     }
   }
@@ -376,19 +384,19 @@ class PaymentCubit extends Cubit<PaymentState> {
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
-            buildArabicText(
+            _buildArabicText(
               'تقرير المدفوعات',
               fontSize: 24,
               bold: true,
             ),
             pw.SizedBox(height: 10),
-            buildArabicText(
+            _buildArabicText(
               'تاريخ التقرير: ${DateFormat('yyyy-MM-dd - HH:mm').format(DateTime.now())}',
               fontSize: 14,
             ),
             pw.Divider(),
             pw.SizedBox(height: 20),
-            buildArabicText(
+            _buildArabicText(
               'ملخص المدفوعات',
               fontSize: 18,
               bold: true,
@@ -406,7 +414,7 @@ class PaymentCubit extends Cubit<PaymentState> {
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
-            buildArabicText(
+            _buildArabicText(
               'الإحصائيات',
               fontSize: 20,
               bold: true,
@@ -430,7 +438,7 @@ class PaymentCubit extends Cubit<PaymentState> {
               // عرض الإيرادات الشهرية إذا كانت متوفرة
               if (stats.monthlyRevenue.isNotEmpty) ...[
                 pw.SizedBox(height: 20),
-                buildArabicText(
+                _buildArabicText(
                   'الإيرادات الشهرية',
                   fontSize: 16,
                   bold: true,
@@ -441,7 +449,7 @@ class PaymentCubit extends Cubit<PaymentState> {
                 ).toList(),
               ],
             ] else ...[
-              buildArabicText(
+              _buildArabicText(
                 'لا توجد إحصائيات متاحة',
                 fontSize: 16,
                 color: PdfColors.grey,
@@ -468,8 +476,8 @@ class PaymentCubit extends Cubit<PaymentState> {
         child: pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            buildArabicText(value, fontSize: 16, bold: true, color: color),
-            buildArabicText(title, fontSize: 14),
+            _buildArabicText(value, fontSize: 16, bold: true, color: color),
+            _buildArabicText(title, fontSize: 14),
           ],
         ),
       ),
@@ -488,8 +496,8 @@ class PaymentCubit extends Cubit<PaymentState> {
         ),
         child: pw.Column(
           children: [
-            buildArabicText(value, fontSize: 18, bold: true, color: color),
-            buildArabicText(title, fontSize: 10),
+            _buildArabicText(value, fontSize: 18, bold: true, color: color),
+            _buildArabicText(title, fontSize: 10),
           ],
         ),
       ),
@@ -513,8 +521,8 @@ class PaymentCubit extends Cubit<PaymentState> {
         child: pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            buildArabicText('${revenue.toStringAsFixed(2)} ر.س', fontSize: 12, bold: true),
-            buildArabicText(month, fontSize: 12),
+            _buildArabicText('${revenue.toStringAsFixed(2)} ر.س', fontSize: 12, bold: true),
+            _buildArabicText(month, fontSize: 12),
           ],
         ),
       ),
@@ -528,59 +536,58 @@ class PaymentCubit extends Cubit<PaymentState> {
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
-            buildArabicText(
+            _buildArabicText(
               'قائمة المدفوعات',
               fontSize: 20,
               bold: true,
             ),
             pw.SizedBox(height: 10),
-            buildArabicText(
+            _buildArabicText(
               'عدد المدفوعات: ${payments.length}',
               fontSize: 14,
             ),
             pw.SizedBox(height: 20),
 
             if (payments.isNotEmpty) ...[
-              // استخدام TableHelper.fromTextArray بدون context
-              pw.TableHelper.fromTextArray(
-                data: <List<String>>[
-                  // رأس الجدول
-                  ['اسم العميل', 'اسم الحفلة', 'المبلغ', 'طريقة الدفع', 'الحالة'],
-                  // بيانات الجدول
-                  ...payments.map((payment) => [
-                    payment.clientName,
-                    payment.eventName,
-                    '${payment.amount.toStringAsFixed(2)} ر.س',
-                    payment.paymentMethodText,
-                    payment.statusText,
-                  ]).toList(),
-                ],
-                headerStyle: _getTextStyle(fontSize: 12, bold: true, color: PdfColors.white),
-                headerDecoration: pw.BoxDecoration(
-                  color: PdfColors.blue700,
-                ),
-                cellStyle: _getTextStyle(fontSize: 10),
-                cellAlignments: {
-                  0: pw.Alignment.centerRight,
-                  1: pw.Alignment.centerRight,
-                  2: pw.Alignment.centerLeft,
-                  3: pw.Alignment.center,
-                  4: pw.Alignment.center,
-                },
-                border: pw.TableBorder.all(
-                  color: PdfColors.grey300,
-                  width: 1,
-                ),
-                columnWidths: {
+              pw.Table(
+                border: pw.TableBorder.all(),
+                columnWidths: const {
                   0: pw.FlexColumnWidth(2),
                   1: pw.FlexColumnWidth(2),
                   2: pw.FlexColumnWidth(1),
                   3: pw.FlexColumnWidth(1.5),
                   4: pw.FlexColumnWidth(1),
                 },
+                defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+                children: [
+                  // رأس الجدول
+                  pw.TableRow(
+                    decoration: pw.BoxDecoration(
+                      color: PdfColors.grey300,
+                    ),
+                    children: [
+                      _buildTableHeaderCell('اسم العميل'),
+                      _buildTableHeaderCell('اسم الحفلة'),
+                      _buildTableHeaderCell('المبلغ'),
+                      _buildTableHeaderCell('طريقة الدفع'),
+                      _buildTableHeaderCell('الحالة'),
+                    ],
+                  ),
+                  // بيانات الجدول
+                  for (var payment in payments)
+                    pw.TableRow(
+                      children: [
+                        _buildTableCell(payment.clientName),
+                        _buildTableCell(payment.eventName),
+                        _buildTableCell('${payment.amount.toStringAsFixed(2)} ر.س'),
+                        _buildTableCell(payment.paymentMethodText),
+                        _buildTableCell(payment.statusText),
+                      ],
+                    ),
+                ],
               ),
             ] else ...[
-              buildArabicText(
+              _buildArabicText(
                 'لا توجد مدفوعات لعرضها',
                 fontSize: 16,
                 color: PdfColors.grey,
@@ -588,6 +595,29 @@ class PaymentCubit extends Cubit<PaymentState> {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  pw.Widget _buildTableHeaderCell(String text) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.all(12),
+      child: _buildArabicText(
+        text,
+        fontSize: 14,
+        bold: true,
+        alignment: pw.TextAlign.center,
+      ),
+    );
+  }
+
+  pw.Widget _buildTableCell(String text) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.all(8),
+      child: _buildArabicText(
+        text,
+        fontSize: 12,
+        alignment: pw.TextAlign.center,
       ),
     );
   }
@@ -601,7 +631,7 @@ class PaymentCubit extends Cubit<PaymentState> {
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
-            buildArabicText(
+            _buildArabicText(
               'تفاصيل الدفعة',
               fontSize: 24,
               bold: true,
@@ -629,7 +659,7 @@ class PaymentCubit extends Cubit<PaymentState> {
               ),
             ),
             pw.SizedBox(height: 30),
-            buildArabicText(
+            _buildArabicText(
               'تم إنشاء هذا التقرير في: ${DateFormat('yyyy-MM-dd - HH:mm').format(DateTime.now())}',
               fontSize: 12,
               color: PdfColors.grey,
@@ -651,12 +681,12 @@ class PaymentCubit extends Cubit<PaymentState> {
           mainAxisAlignment: pw.MainAxisAlignment.end,
           children: [
             pw.Expanded(
-              child: buildArabicText(value, fontSize: 14),
+              child: _buildArabicText(value, fontSize: 14),
             ),
             pw.SizedBox(width: 20),
             pw.Container(
               width: 100,
-              child: buildArabicText(
+              child: _buildArabicText(
                 label,
                 fontSize: 14,
                 bold: true,
@@ -794,5 +824,35 @@ class PaymentCubit extends Cubit<PaymentState> {
       'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
     ];
     return months[month - 1];
+  }
+
+  // دالة لاختبار الخطوط العربية
+  Future<void> testArabicFonts() async {
+    debugPrint('🔍 بدء اختبار الخطوط...');
+    await _ensureFontsLoaded();
+
+    if (_fontsLoaded) {
+      debugPrint('🎉 الخطوط جاهزة للاستخدام!');
+      debugPrint('📝 ${PdfUtils.fontStatus}');
+
+      // إنشاء ملف اختبار
+      final pdf = pw.Document();
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          build: (pw.Context context) {
+            return PdfUtils.buildFontTestPage();
+          },
+        ),
+      );
+
+      final fileName = 'اختبار_الخطوط_${DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now())}.pdf';
+      final filePath = await _savePdfFile(pdf, fileName);
+      debugPrint('✅ تم حفظ ملف الاختبار: $filePath');
+
+    } else {
+      debugPrint('❌ هناك مشكلة في تحميل الخطوط');
+      debugPrint('📝 ${PdfUtils.fontStatus}');
+    }
   }
 }

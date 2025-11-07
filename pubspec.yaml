@@ -47,8 +47,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
   assets:
     - assets/mozhela.png
     - assets/background.png
     - assets/background1.png
-    - assets/
+    - assets/fonts/

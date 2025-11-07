@@ -12,7 +12,7 @@ import 'package:open_file/open_file.dart';
 import 'package:intl/intl.dart';
 import 'package:new_wedding_hall/core/error/failure.dart';
 import 'package:new_wedding_hall/core/usecase/usecase.dart';
-import 'package:new_wedding_hall/core/utils/pdf_utils.dart';
+import 'package:new_wedding_hall/core/utils/pdf_utils.dart' hide debugPrint;
 
 import '../../domain/entities/report_entity.dart';
 import '../../domain/entities/report_summary_entity.dart';
@@ -48,11 +48,11 @@ class ReportCubit extends Cubit<ReportState> {
   Future<void> _initializeFonts() async {
     try {
       await PdfUtils.initialize();
-      _fontsLoaded = true;
-      debugPrint('✅ تم تهيئة الخطوط العربية في ReportCubit');
+      _fontsLoaded = PdfUtils.isReady;
+      debugPrint('✅ تم تهيئة الخطوط في ReportCubit - الحالة: $_fontsLoaded');
     } catch (e) {
-      debugPrint('❌ خطأ في تهيئة الخطوط: $e');
-      _fontsLoaded = false;
+      debugPrint('⚠️ استخدام خطوط بديلة في ReportCubit: $e');
+      _fontsLoaded = true; // نعتبرها محملة لاستخدام الخطوط البديلة
     }
   }
 
@@ -169,6 +169,15 @@ class ReportCubit extends Cubit<ReportState> {
     }
   }
 
+  // دوال جديدة متوافقة مع نظام المدفوعات
+  Future<List<File>> getSavedPdfFiles() async {
+    return await getSavedReportFiles();
+  }
+
+  Future<bool> deleteSavedPdfFile(String filePath) async {
+    return await deleteSavedReportFile(filePath);
+  }
+
   // ========== دوال إنشاء PDF مع دعم عربي محسن ==========
 
   pw.Widget _buildArabicText(String text, {
@@ -177,137 +186,300 @@ class ReportCubit extends Cubit<ReportState> {
     PdfColor? color,
     pw.TextAlign alignment = pw.TextAlign.right
   }) {
-    if (PdfUtils.isArabicTextSupported(text)) {
-      return PdfUtils.buildArabicText(
-        text,
-        fontSize: fontSize,
-        bold: bold,
-        color: color ?? PdfColors.black,
-        alignment: alignment,
-      );
-    } else {
-      return pw.Text(
-        text,
-        style: pw.TextStyle(
-          fontSize: fontSize,
-          fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-          color: color ?? PdfColors.black,
-        ),
-        textAlign: alignment,
-      );
-    }
+    return PdfUtils.buildArabicText(
+      text,
+      fontSize: fontSize,
+      bold: bold,
+      color: color ?? PdfColors.black,
+      alignment: alignment,
+    );
   }
 
-  pw.Widget _buildReportHeader(ReportSummaryEntity summary, String period) {
+  // دوال مساعدة للألوان
+  PdfColor _getLightColor(PdfColor baseColor) {
+    if (baseColor == PdfColors.green) return PdfColors.lightGreen;
+    if (baseColor == PdfColors.blue) return PdfColors.lightBlue;
+    if (baseColor == PdfColors.orange) return PdfColors.orange100;
+    if (baseColor == PdfColors.red) return PdfColors.red100;
+    return PdfColors.grey300;
+  }
+
+  // دوال جديدة محسنة لتقارير PDF
+  pw.Widget _buildReportHeaderPage(ReportLoaded state) {
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        padding: const pw.EdgeInsets.all(40),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            _buildArabicText(
+              'تقرير الأداء',
+              fontSize: 28,
+              bold: true,
+              color: PdfColors.blue,
+            ),
+            pw.SizedBox(height: 10),
+            _buildArabicText(
+              '${_getPeriodText(state.selectedPeriod)} - ${DateFormat('yyyy-MM-dd - HH:mm').format(DateTime.now())}',
+              fontSize: 16,
+              color: PdfColors.grey,
+            ),
+            pw.Divider(thickness: 2, color: PdfColors.blue),
+            pw.SizedBox(height: 30),
+            _buildArabicText(
+              'ملخص الأداء',
+              fontSize: 22,
+              bold: true,
+            ),
+            pw.SizedBox(height: 20),
+            _buildSummaryCards(state.summary!),
+          ],
+        ),
+      ),
+    );
+  }
+
+  pw.Widget _buildSummaryCards(ReportSummaryEntity summary) {
+    return pw.Row(
+      mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+      children: [
+        _buildSummaryCard('إجمالي الإيرادات', '${summary.totalRevenue.toStringAsFixed(0)} ر.س', PdfColors.green),
+        _buildSummaryCard('صافي الربح', '${summary.netProfit.toStringAsFixed(0)} ر.س', PdfColors.blue),
+        _buildSummaryCard('هامش الربح', '${summary.profitMargin.toStringAsFixed(1)}%', PdfColors.orange),
+      ],
+    );
+  }
+
+  pw.Widget _buildSummaryCard(String title, String value, PdfColor color) {
     return pw.Container(
+      width: 150,
+      padding: const pw.EdgeInsets.all(15),
+      decoration: pw.BoxDecoration(
+        color: _getLightColor(color),
+        border: pw.Border.all(color: color, width: 2),
+        borderRadius: pw.BorderRadius.circular(10),
+      ),
+      child: pw.Column(
+        children: [
+          _buildArabicText(value, fontSize: 16, bold: true, color: color),
+          pw.SizedBox(height: 8),
+          _buildArabicText(title, fontSize: 12),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildStatsPage(ReportLoaded state) {
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        padding: const pw.EdgeInsets.all(40),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            _buildArabicText(
+              'الإحصائيات التفصيلية',
+              fontSize: 24,
+              bold: true,
+              color: PdfColors.blue,
+            ),
+            pw.SizedBox(height: 20),
+            _buildDetailedStats(state.summary!),
+          ],
+        ),
+      ),
+    );
+  }
+
+  pw.Widget _buildDetailedStats(ReportSummaryEntity summary) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(20),
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.grey300),
+        borderRadius: pw.BorderRadius.circular(10),
+      ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.end,
         children: [
-          _buildArabicText(
-            'تقرير الأداء',
-            fontSize: 24,
-            bold: true,
-          ),
-          pw.SizedBox(height: 10),
-          _buildArabicText(
-            '${_getPeriodText(period)} - ${DateFormat('yyyy-MM-dd - HH:mm').format(DateTime.now())}',
-            fontSize: 14,
-          ),
-          pw.Divider(),
-          pw.SizedBox(height: 20),
-          _buildArabicText(
-            'ملخص الأداء',
-            fontSize: 18,
-            bold: true,
-          ),
+          _buildStatRow('إجمالي الإيرادات', '${summary.totalRevenue.toStringAsFixed(2)} ر.س', PdfColors.green),
+          _buildStatRow('إجمالي المصروفات', '${summary.totalExpenses.toStringAsFixed(2)} ر.س', PdfColors.red),
+          _buildStatRow('صافي الربح', '${summary.netProfit.toStringAsFixed(2)} ر.س', PdfColors.blue),
+          _buildStatRow('إجمالي المدفوعات', '${summary.totalPayments.toStringAsFixed(2)} ر.س', PdfColors.purple),
+          _buildStatRow('عدد الحفلات', summary.totalEvents.toString(), PdfColors.orange),
+          _buildStatRow('هامش الربح', '${summary.profitMargin.toStringAsFixed(1)}%', PdfColors.teal),
         ],
+      ),
+    );
+  }
+
+  pw.Widget _buildStatRow(String label, String value, PdfColor color) {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 15),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          _buildArabicText(value, fontSize: 14, bold: true, color: color),
+          _buildArabicText(label, fontSize: 14),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildReportsPage(ReportLoaded state) {
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        padding: const pw.EdgeInsets.all(40),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            _buildArabicText(
+              'التقارير التفصيلية',
+              fontSize: 24,
+              bold: true,
+              color: PdfColors.blue,
+            ),
+            pw.SizedBox(height: 10),
+            _buildArabicText(
+              'عدد التقارير: ${state.reports.length}',
+              fontSize: 14,
+            ),
+            pw.SizedBox(height: 20),
+            _buildReportsTable(state.reports, state.selectedPeriod),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // الدوال الحالية مع تحسينات
+  pw.Widget _buildReportHeader(ReportSummaryEntity summary, String period) {
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            _buildArabicText(
+              'تقرير الأداء',
+              fontSize: 24,
+              bold: true,
+            ),
+            pw.SizedBox(height: 10),
+            _buildArabicText(
+              '${_getPeriodText(period)} - ${DateFormat('yyyy-MM-dd - HH:mm').format(DateTime.now())}',
+              fontSize: 14,
+            ),
+            pw.Divider(),
+            pw.SizedBox(height: 20),
+            _buildArabicText(
+              'ملخص الأداء',
+              fontSize: 18,
+              bold: true,
+            ),
+          ],
+        ),
       ),
     );
   }
 
   pw.Widget _buildSummaryStats(ReportSummaryEntity summary) {
-    return pw.Container(
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.end,
-        children: [
-          _buildArabicText(
-            'الإحصائيات',
-            fontSize: 20,
-            bold: true,
-          ),
-          pw.SizedBox(height: 20),
-          _buildStatItem('إجمالي الإيرادات', '${summary.totalRevenue.toStringAsFixed(2)} ر.س'),
-          _buildStatItem('إجمالي المصروفات', '${summary.totalExpenses.toStringAsFixed(2)} ر.س'),
-          _buildStatItem('صافي الربح', '${summary.netProfit.toStringAsFixed(2)} ر.س'),
-          _buildStatItem('إجمالي المدفوعات', '${summary.totalPayments.toStringAsFixed(2)} ر.س'),
-          _buildStatItem('عدد الحفلات', summary.totalEvents.toString()),
-          _buildStatItem('هامش الربح', '${summary.profitMargin.toStringAsFixed(1)}%'),
-        ],
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            _buildArabicText(
+              'الإحصائيات',
+              fontSize: 20,
+              bold: true,
+            ),
+            pw.SizedBox(height: 20),
+            _buildStatItem('إجمالي الإيرادات', '${summary.totalRevenue.toStringAsFixed(2)} ر.س'),
+            _buildStatItem('إجمالي المصروفات', '${summary.totalExpenses.toStringAsFixed(2)} ر.س'),
+            _buildStatItem('صافي الربح', '${summary.netProfit.toStringAsFixed(2)} ر.س'),
+            _buildStatItem('إجمالي المدفوعات', '${summary.totalPayments.toStringAsFixed(2)} ر.س'),
+            _buildStatItem('عدد الحفلات', summary.totalEvents.toString()),
+            _buildStatItem('هامش الربح', '${summary.profitMargin.toStringAsFixed(1)}%'),
+          ],
+        ),
       ),
     );
   }
 
   pw.Widget _buildStatItem(String title, String value) {
-    return pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 10),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          _buildArabicText(value, fontSize: 14, bold: true),
-          _buildArabicText(title, fontSize: 14),
-        ],
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        margin: const pw.EdgeInsets.only(bottom: 10),
+        child: pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [
+            _buildArabicText(value, fontSize: 14, bold: true),
+            _buildArabicText(title, fontSize: 14),
+          ],
+        ),
       ),
     );
   }
 
   pw.Widget _buildReportsList(List<ReportEntity> reports, String period) {
-    return pw.Container(
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.end,
-        children: [
-          _buildArabicText(
-            'قائمة التقارير ${_getPeriodText(period)}',
-            fontSize: 20,
-            bold: true,
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            _buildArabicText(
+              'قائمة التقارير ${_getPeriodText(period)}',
+              fontSize: 20,
+              bold: true,
+            ),
+            pw.SizedBox(height: 20),
+            _buildReportsTable(reports, period),
+          ],
+        ),
+      ),
+    );
+  }
+
+  pw.Widget _buildReportsTable(List<ReportEntity> reports, String period) {
+    return pw.Table(
+      border: pw.TableBorder.all(),
+      columnWidths: const {
+        0: pw.FlexColumnWidth(2),
+        1: pw.FlexColumnWidth(2),
+        2: pw.FlexColumnWidth(2),
+        3: pw.FlexColumnWidth(2),
+        4: pw.FlexColumnWidth(2),
+      },
+      defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+      children: [
+        pw.TableRow(
+          decoration: pw.BoxDecoration(
+            color: PdfColors.grey300,
           ),
-          pw.SizedBox(height: 20),
-          pw.Table(
-            border: pw.TableBorder.all(),
-            columnWidths: const {
-              0: pw.FlexColumnWidth(2),
-              1: pw.FlexColumnWidth(2),
-              2: pw.FlexColumnWidth(2),
-              3: pw.FlexColumnWidth(2),
-              4: pw.FlexColumnWidth(2),
-            },
-            defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+          children: [
+            _buildTableHeaderCell('التاريخ'),
+            _buildTableHeaderCell('الإيرادات'),
+            _buildTableHeaderCell('المصروفات'),
+            _buildTableHeaderCell('صافي الربح'),
+            _buildTableHeaderCell('عدد الحفلات'),
+          ],
+        ),
+        for (var report in reports)
+          pw.TableRow(
             children: [
-              pw.TableRow(
-                decoration: pw.BoxDecoration(
-                  color: PdfColors.grey300,
-                ),
-                children: [
-                  _buildTableHeaderCell('التاريخ'),
-                  _buildTableHeaderCell('الإيرادات'),
-                  _buildTableHeaderCell('المصروفات'),
-                  _buildTableHeaderCell('صافي الربح'),
-                  _buildTableHeaderCell('عدد الحفلات'),
-                ],
-              ),
-              for (var report in reports)
-                pw.TableRow(
-                  children: [
-                    _buildTableCell(_formatReportDate(report.date, period)),
-                    _buildTableCell('${report.totalRevenue.toStringAsFixed(2)} ر.س'),
-                    _buildTableCell('${report.expenses.toStringAsFixed(2)} ر.س'),
-                    _buildTableCell('${report.netProfit.toStringAsFixed(2)} ر.س'),
-                    _buildTableCell(report.eventsCount.toString()),
-                  ],
-                ),
+              _buildTableCell(_formatReportDate(report.date, period)),
+              _buildTableCell('${report.totalRevenue.toStringAsFixed(2)} ر.س'),
+              _buildTableCell('${report.expenses.toStringAsFixed(2)} ر.س'),
+              _buildTableCell('${report.netProfit.toStringAsFixed(2)} ر.س'),
+              _buildTableCell(report.eventsCount.toString()),
             ],
           ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -335,69 +507,75 @@ class ReportCubit extends Cubit<ReportState> {
   }
 
   pw.Widget _buildSingleReportPage(ReportEntity report, String period) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.all(20),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.end,
-        children: [
-          _buildArabicText(
-            'تفاصيل التقرير',
-            fontSize: 24,
-            bold: true,
-          ),
-          pw.SizedBox(height: 20),
-          pw.Container(
-            padding: const pw.EdgeInsets.all(20),
-            decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: PdfColors.blue),
-              borderRadius: pw.BorderRadius.circular(10),
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        padding: const pw.EdgeInsets.all(20),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            _buildArabicText(
+              'تفاصيل التقرير',
+              fontSize: 24,
+              bold: true,
             ),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
-              children: [
-                _buildDetailRow('الفترة:', _getPeriodText(period)),
-                _buildDetailRow('التاريخ:', _formatReportDate(report.date, period)),
-                _buildDetailRow('الإيرادات:', '${report.totalRevenue.toStringAsFixed(2)} ر.س'),
-                _buildDetailRow('المصروفات:', '${report.expenses.toStringAsFixed(2)} ر.س'),
-                _buildDetailRow('صافي الربح:', '${report.netProfit.toStringAsFixed(2)} ر.س'),
-                _buildDetailRow('المدفوعات:', '${report.totalPayments.toStringAsFixed(2)} ر.س'),
-                _buildDetailRow('عدد الحفلات:', report.eventsCount.toString()),
-                _buildDetailRow('هامش الربح:', '${report.profitMargin.toStringAsFixed(1)}%'),
-                _buildDetailRow('المعرف:', report.id),
-              ],
+            pw.SizedBox(height: 20),
+            pw.Container(
+              padding: const pw.EdgeInsets.all(20),
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(color: PdfColors.blue),
+                borderRadius: pw.BorderRadius.circular(10),
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                children: [
+                  _buildDetailRow('الفترة:', _getPeriodText(period)),
+                  _buildDetailRow('التاريخ:', _formatReportDate(report.date, period)),
+                  _buildDetailRow('الإيرادات:', '${report.totalRevenue.toStringAsFixed(2)} ر.س'),
+                  _buildDetailRow('المصروفات:', '${report.expenses.toStringAsFixed(2)} ر.س'),
+                  _buildDetailRow('صافي الربح:', '${report.netProfit.toStringAsFixed(2)} ر.س'),
+                  _buildDetailRow('المدفوعات:', '${report.totalPayments.toStringAsFixed(2)} ر.س'),
+                  _buildDetailRow('عدد الحفلات:', report.eventsCount.toString()),
+                  _buildDetailRow('هامش الربح:', '${report.profitMargin.toStringAsFixed(1)}%'),
+                  _buildDetailRow('المعرف:', report.id),
+                ],
+              ),
             ),
-          ),
-          pw.SizedBox(height: 30),
-          _buildArabicText(
-            'تم إنشاء هذا التقرير في: ${DateFormat('yyyy-MM-dd - HH:mm').format(DateTime.now())}',
-            fontSize: 12,
-            color: PdfColors.grey,
-          ),
-        ],
+            pw.SizedBox(height: 30),
+            _buildArabicText(
+              'تم إنشاء هذا التقرير في: ${DateFormat('yyyy-MM-dd - HH:mm').format(DateTime.now())}',
+              fontSize: 12,
+              color: PdfColors.grey,
+            ),
+          ],
+        ),
       ),
     );
   }
 
   pw.Widget _buildDetailRow(String label, String value) {
-    return pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 15),
-      child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        mainAxisAlignment: pw.MainAxisAlignment.end,
-        children: [
-          pw.Expanded(
-            child: _buildArabicText(value, fontSize: 14),
-          ),
-          pw.SizedBox(width: 20),
-          pw.Container(
-            width: 100,
-            child: _buildArabicText(
-              label,
-              fontSize: 14,
-              bold: true,
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        margin: const pw.EdgeInsets.only(bottom: 15),
+        child: pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          mainAxisAlignment: pw.MainAxisAlignment.end,
+          children: [
+            pw.Expanded(
+              child: _buildArabicText(value, fontSize: 14),
             ),
-          ),
-        ],
+            pw.SizedBox(width: 20),
+            pw.Container(
+              width: 100,
+              child: _buildArabicText(
+                label,
+                fontSize: 14,
+                bold: true,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -434,9 +612,14 @@ class ReportCubit extends Cubit<ReportState> {
 
   // ========== الدوال الرئيسية للطباعة والحفظ ==========
 
+  // دالة جديدة محسنة لحفظ PDF
   Future<void> generateAndSavePdfReport() async {
     try {
       await _ensureFontsLoaded();
+
+      if (!_fontsLoaded) {
+        debugPrint('⚠️ تحذير: استخدام خطوط بديلة - قد يكون العرض غير مثالي');
+      }
 
       if (state is! ReportLoaded) {
         throw Exception('❌ لا توجد تقارير محملة');
@@ -452,38 +635,32 @@ class ReportCubit extends Cubit<ReportState> {
 
       final pdf = pw.Document();
 
+      // صفحة العنوان
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
           build: (pw.Context context) {
-            return pw.Padding(
-              padding: const pw.EdgeInsets.all(20),
-              child: _buildReportHeader(loadedState.summary!, loadedState.selectedPeriod),
-            );
+            return _buildReportHeaderPage(loadedState);
           },
         ),
       );
 
+      // صفحة الإحصائيات
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
           build: (pw.Context context) {
-            return pw.Padding(
-              padding: const pw.EdgeInsets.all(20),
-              child: _buildSummaryStats(loadedState.summary!),
-            );
+            return _buildStatsPage(loadedState);
           },
         ),
       );
 
+      // صفحة التقارير
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
           build: (pw.Context context) {
-            return pw.Padding(
-              padding: const pw.EdgeInsets.all(20),
-              child: _buildReportsList(loadedState.reports, loadedState.selectedPeriod),
-            );
+            return _buildReportsPage(loadedState);
           },
         ),
       );
@@ -504,6 +681,10 @@ class ReportCubit extends Cubit<ReportState> {
   Future<void> generatePdfReport() async {
     try {
       await _ensureFontsLoaded();
+
+      if (!_fontsLoaded) {
+        debugPrint('⚠️ تحذير: استخدام خطوط بديلة - قد يكون العرض غير مثالي');
+      }
 
       if (state is! ReportLoaded) {
         throw Exception('❌ لا توجد تقارير محملة');
@@ -564,6 +745,10 @@ class ReportCubit extends Cubit<ReportState> {
     try {
       await _ensureFontsLoaded();
 
+      if (!_fontsLoaded) {
+        debugPrint('⚠️ تحذير: استخدام خطوط بديلة - قد يكون العرض غير مثالي');
+      }
+
       if (state is! ReportLoaded) {
         throw Exception('❌ لا توجد تقارير محملة');
       }
@@ -596,6 +781,10 @@ class ReportCubit extends Cubit<ReportState> {
   Future<void> generateSingleReportPdf(ReportEntity report) async {
     try {
       await _ensureFontsLoaded();
+
+      if (!_fontsLoaded) {
+        debugPrint('⚠️ تحذير: استخدام خطوط بديلة - قد يكون العرض غير مثالي');
+      }
 
       if (state is! ReportLoaded) {
         throw Exception('❌ لا توجد تقارير محملة');
@@ -1014,13 +1203,31 @@ class ReportCubit extends Cubit<ReportState> {
 
   // دالة لاختبار الخطوط العربية
   Future<void> testArabicFonts() async {
-    debugPrint('🔍 بدء اختبار الخطوط العربية...');
+    debugPrint('🔍 بدء اختبار الخطوط...');
     await _ensureFontsLoaded();
 
     if (_fontsLoaded) {
-      debugPrint('🎉 الخطوط العربية محملة وجاهزة للاستخدام!');
+      debugPrint('🎉 الخطوط جاهزة للاستخدام!');
+      debugPrint('📝 ${PdfUtils.fontStatus}');
+
+      // إنشاء ملف اختبار
+      final pdf = pw.Document();
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          build: (pw.Context context) {
+            return PdfUtils.buildFontTestPage();
+          },
+        ),
+      );
+
+      final fileName = 'اختبار_الخطوط_${DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now())}.pdf';
+      final filePath = await _savePdfFile(pdf, fileName);
+      debugPrint('✅ تم حفظ ملف الاختبار: $filePath');
+
     } else {
-      debugPrint('❌ هناك مشكلة في تحميل الخطوط العربية');
+      debugPrint('❌ هناك مشكلة في تحميل الخطوط');
+      debugPrint('📝 ${PdfUtils.fontStatus}');
     }
   }
 

@@ -4,33 +4,32 @@ import 'package:pdf/widgets.dart' as pw;
 import 'font_loader.dart';
 
 class PdfUtils {
+  static bool _isInitialized = false;
+
   static Future<void> initialize() async {
-    await FontLoader.loadFont();
-  }
+    if (_isInitialized) return;
 
-  static pw.TextStyle getArabicTextStyle({
-    double fontSize = 12,
-    pw.FontWeight fontWeight = pw.FontWeight.normal,
-    PdfColor color = PdfColors.black,
-  }) {
-    return pw.TextStyle(
-      font: FontLoader.arabicFont,
-      fontSize: fontSize,
-      fontWeight: fontWeight,
-      color: color,
-    );
-  }
-
-  static bool get isReady => FontLoader.isLoaded && FontLoader.arabicFont != null;
-
-  static Future<bool> ensureReady() async {
-    if (!FontLoader.isLoaded) {
+    try {
+      debugPrint('🔄 بدء تهيئة PdfUtils...');
       await FontLoader.loadFont();
+      _isInitialized = true;
+      debugPrint('✅ تم تهيئة PdfUtils بنجاح');
+      debugPrint('📝 ${FontLoader.fontInfo}');
+    } catch (e) {
+      debugPrint('❌ خطأ في تهيئة PdfUtils: $e');
+      _isInitialized = true; // نعتبره مهيأ حتى مع الخط البديل
     }
-    return isReady;
   }
 
-  // دالة محسنة لبناء النص العربي
+  static bool get isReady => _isInitialized;
+
+  static Future<void> ensureReady() async {
+    if (!isReady) {
+      await initialize();
+    }
+  }
+
+  // دالة محسنة تعمل مع أو بدون خطوط عربية
   static pw.Widget buildArabicText(
       String text, {
         double fontSize = 12,
@@ -38,127 +37,100 @@ class PdfUtils {
         PdfColor color = PdfColors.black,
         pw.TextAlign alignment = pw.TextAlign.right,
       }) {
-    return pw.Container(
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
       child: pw.Text(
         text,
-        style: getArabicTextStyle(
+        style: _getTextStyle(
           fontSize: fontSize,
-          fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+          bold: bold,
           color: color,
         ),
-        textDirection: pw.TextDirection.rtl,
         textAlign: alignment,
       ),
     );
   }
 
-  // دالة جديدة للتحقق من دعم النص العربي
-  static bool isArabicTextSupported(String text) {
-    return FontLoader.isLoaded && FontLoader.arabicFont != null;
+  static pw.TextStyle _getTextStyle({
+    double fontSize = 12,
+    bool bold = false,
+    PdfColor color = PdfColors.black,
+  }) {
+    if (FontLoader.isLoaded && FontLoader.arabicFont != null) {
+      return pw.TextStyle(
+        font: FontLoader.arabicFont!,
+        fontSize: fontSize,
+        fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+        color: color,
+      );
+    } else {
+      // استخدام خط system مع إعدادات النص العربي
+      return pw.TextStyle(
+        fontSize: fontSize,
+        fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+        color: color,
+        // إضافة هذه الخاصية لتحسين العرض
+        wordSpacing: 1.0,
+        letterSpacing: 0.5,
+      );
+    }
   }
 
-  // دالة للتعامل مع النص بشكل آمن - نسخة مبسطة بدون FutureBuilder
+  // دالة بديلة آمنة
   static pw.Widget buildSafeText(
       String text, {
         double fontSize = 12,
         bool bold = false,
         PdfColor color = PdfColors.black,
         pw.TextAlign alignment = pw.TextAlign.right,
-        bool forceArabic = true,
       }) {
-    if (forceArabic && isArabicTextSupported(text)) {
-      return buildArabicText(
-        text,
-        fontSize: fontSize,
-        bold: bold,
-        color: color,
-        alignment: alignment,
-      );
-    } else {
-      // استخدام خط بديل إذا لم تكن الخطوط العربية متاحة
-      return pw.Text(
-        text,
-        style: pw.TextStyle(
-          fontSize: fontSize,
-          fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-          color: color,
-        ),
-        textAlign: alignment,
-      );
-    }
-  }
-
-  // دالة مساعدة لبناء جدول بنص عربي
-  static pw.Widget buildArabicTable(List<List<String>> data, {List<String>? headers}) {
-    return pw.Table(
-      border: pw.TableBorder.all(),
-      children: [
-        if (headers != null)
-          pw.TableRow(
-            decoration: const pw.BoxDecoration(
-              color: PdfColors.grey300,
-            ),
-            children: headers.map((header) =>
-                pw.Padding(
-                  padding: const pw.EdgeInsets.all(8),
-                  child: buildSafeText(header, bold: true, alignment: pw.TextAlign.center),
-                )).toList(),
-          ),
-        for (var row in data)
-          pw.TableRow(
-            children: row.map((cell) =>
-                pw.Padding(
-                  padding: const pw.EdgeInsets.all(8),
-                  child: buildSafeText(cell, alignment: pw.TextAlign.center),
-                )).toList(),
-          ),
-      ],
+    return buildArabicText(
+      text,
+      fontSize: fontSize,
+      bold: bold,
+      color: color,
+      alignment: alignment,
     );
   }
 
-  // دالة مساعدة لبناء عمود بنص عربي
-  static pw.Widget buildArabicColumn(
-      List<String> texts, {
-        pw.CrossAxisAlignment crossAxisAlignment = pw.CrossAxisAlignment.end,
-      }) {
-    return pw.Column(
-      crossAxisAlignment: crossAxisAlignment,
-      children: texts.map((text) => buildSafeText(text)).toList(),
-    );
-  }
-
-  // دالة لبناء صفحة بعنوان عربي
-  static pw.Widget buildArabicPage(
-      String title,
-      List<pw.Widget> children, {
-        bool showDate = true,
-      }) {
-    return pw.Container(
+  // دالة لاختبار الخطوط
+  static pw.Widget buildFontTestPage() {
+    return pw.Padding(
       padding: const pw.EdgeInsets.all(20),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.end,
-        children: [
-          buildSafeText(
-            title,
-            fontSize: 24,
-            bold: true,
-          ),
-          if (showDate) ...[
+      child: pw.Directionality(
+        textDirection: pw.TextDirection.rtl,
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            buildArabicText('اختبار الخطوط العربية', fontSize: 24, bold: true),
+            pw.SizedBox(height: 20),
+            buildArabicText('النص العادي: مرحباً بك في التطبيق', fontSize: 14),
+            buildArabicText('النص العريض: مرحباً بك في التطبيق', fontSize: 14, bold: true),
             pw.SizedBox(height: 10),
-            buildSafeText(
-              'تاريخ التقرير: ${_formatDate(DateTime.now())}',
-              fontSize: 14,
+            buildArabicText('الأرقام: ١٢٣٤٥٦٧٨٩٠', fontSize: 14),
+            buildArabicText('التاريخ: ${DateTime.now().toString()}', fontSize: 12),
+            pw.SizedBox(height: 20),
+            buildArabicText('معلومات الخط:', fontSize: 16, bold: true),
+            buildArabicText('الخط الحالي: ${FontLoader.currentFont}', fontSize: 12),
+            buildArabicText('الحالة: ${FontLoader.isLoaded ? "جاهز" : "غير جاهز"}', fontSize: 12),
+            pw.SizedBox(height: 10),
+            buildArabicText('نص تجريبي طويل:', fontSize: 14, bold: true),
+            buildArabicText(
+              'هذا نص عربي طويل لاختبار مدى دعم الخط للغة العربية. يجب أن يظهر هذا النص بشكل صحيح بدون أي مشاكل في التنسيق أو الاتجاه.',
+              fontSize: 12,
             ),
           ],
-          pw.Divider(),
-          pw.SizedBox(height: 20),
-          ...children,
-        ],
+        ),
       ),
     );
   }
 
-  static String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} - ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  static String get fontStatus {
+    return 'الحالة: ${FontLoader.isLoaded ? "جاهز" : "غير جاهز"}\n'
+        'الخط: ${FontLoader.currentFont}';
   }
+}
+
+void debugPrint(String message) {
+  print('🖨️ PDF_UTILS: $message');
 }

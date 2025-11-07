@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'core/services/dependencies.dart';
+import 'core/utils/font_loader.dart'; // إضافة الاستيراد
 import 'features/home/presentation/cubit/home_cubit.dart';
 import 'features/payments/domain/repositories/payment_repository.dart';
 import 'features/payments/domain/usecases/Update_Payment_UseCase.dart';
@@ -25,7 +26,12 @@ Future<void> main() async {
     configureDependencies();
     print('✅ DI initialized');
 
-    // اختبار جميع ال dependencies
+    // ✅ تهيئة الخطوط العربية قبل تشغيل التطبيق
+    print('🔄 تحميل الخطوط العربية...');
+    await FontLoader.loadFont();
+    print('✅ الخطوط العربية جاهزة: ${FontLoader.currentFont}');
+    print('📝 معلومات الخطوط: ${FontLoader.fontInfo}');
+
     testDependencies();
 
     runApp(const MainApp());
@@ -75,6 +81,9 @@ class MainApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          fontFamily: 'Tajawal', // تعيين الخط الافتراضي للتطبيق
+        ),
         home: const SplashScreen(),
       ),
     );
@@ -88,7 +97,35 @@ class ErrorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(body: Center(child: Text('Error: $error'))),
+      home: Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error, size: 64, color: Colors.red),
+                const SizedBox(height: 20),
+                const Text(
+                  'حدث خطأ في التطبيق',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  error,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () => main(),
+                  child: const Text('إعادة المحاولة'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

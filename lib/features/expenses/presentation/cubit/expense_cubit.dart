@@ -1,8 +1,9 @@
+// features/expenses/presentation/cubit/expense_cubit.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:new_wedding_hall/core/utils/pdf_utils.dart';
+import 'package:new_wedding_hall/core/utils/pdf_utils.dart' hide debugPrint;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -38,11 +39,12 @@ class ExpenseCubit extends Cubit<ExpenseState> {
   Future<void> _initializeFonts() async {
     try {
       await PdfUtils.initialize();
-      _fontsLoaded = true;
-      debugPrint('✅ تم تهيئة الخطوط العربية في ExpenseCubit');
+      _fontsLoaded = PdfUtils.isReady;
+      debugPrint('✅ تم تهيئة الخطوط في ExpenseCubit - الحالة: $_fontsLoaded');
+      debugPrint('📝 ${PdfUtils.fontStatus}');
     } catch (e) {
-      debugPrint('❌ خطأ في تهيئة الخطوط: $e');
-      _fontsLoaded = false;
+      debugPrint('⚠️ استخدام خطوط بديلة في ExpenseCubit: $e');
+      _fontsLoaded = true; // نعتبرها محملة لاستخدام الخطوط البديلة
     }
   }
 
@@ -170,7 +172,7 @@ class ExpenseCubit extends Cubit<ExpenseState> {
     PdfColor? color,
     pw.TextAlign alignment = pw.TextAlign.right
   }) {
-    return PdfUtils.buildSafeText(
+    return PdfUtils.buildArabicText(
       text,
       fontSize: fontSize,
       bold: bold,
@@ -180,143 +182,155 @@ class ExpenseCubit extends Cubit<ExpenseState> {
   }
 
   pw.Widget _buildReportHeader() {
-    return pw.Container(
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.end,
-        children: [
-          _buildArabicText(
-            'تقرير التكاليف',
-            fontSize: 24,
-            bold: true,
-          ),
-          pw.SizedBox(height: 10),
-          _buildArabicText(
-            'تاريخ التقرير: ${DateFormat('yyyy-MM-dd - HH:mm').format(DateTime.now())}',
-            fontSize: 14,
-          ),
-          pw.Divider(),
-          pw.SizedBox(height: 20),
-          _buildArabicText(
-            'ملخص التكاليف',
-            fontSize: 18,
-            bold: true,
-          ),
-        ],
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            _buildArabicText(
+              'تقرير التكاليف',
+              fontSize: 24,
+              bold: true,
+            ),
+            pw.SizedBox(height: 10),
+            _buildArabicText(
+              'تاريخ التقرير: ${DateFormat('yyyy-MM-dd - HH:mm').format(DateTime.now())}',
+              fontSize: 14,
+            ),
+            pw.Divider(),
+            pw.SizedBox(height: 20),
+            _buildArabicText(
+              'ملخص التكاليف',
+              fontSize: 18,
+              bold: true,
+            ),
+          ],
+        ),
       ),
     );
   }
 
   pw.Widget _buildStatsPage(ExpenseStatsEntity stats, ProfitEntity? profit) {
-    return pw.Container(
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.end,
-        children: [
-          _buildArabicText(
-            'الإحصائيات',
-            fontSize: 20,
-            bold: true,
-          ),
-          pw.SizedBox(height: 20),
-          _buildStatItem('إجمالي التكاليف', '${stats.totalExpenses.toStringAsFixed(2)} ر.س'),
-          _buildStatItem('عدد التكاليف', stats.expenseCount.toString()),
-          _buildStatItem('متوسط التكلفة', '${stats.averageExpense.toStringAsFixed(2)} ر.س'),
-          _buildStatItem('تكاليف اليوم', '${stats.todayExpenses.toStringAsFixed(2)} ر.س'),
-          _buildStatItem('تكاليف الشهر', '${stats.monthlyExpenses.toStringAsFixed(2)} ر.س'),
-
-          if (profit != null) ...[
-            pw.SizedBox(height: 20),
-            pw.Container(
-              padding: const pw.EdgeInsets.all(10),
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: PdfColors.blue),
-                borderRadius: pw.BorderRadius.circular(5),
-              ),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.end,
-                children: [
-                  _buildArabicText(
-                    'الربح / الخسارة',
-                    fontSize: 16,
-                    bold: true,
-                    color: PdfColors.blue,
-                  ),
-                  pw.SizedBox(height: 5),
-                  _buildArabicText('الإيرادات: ${profit.totalRevenue.toStringAsFixed(2)} ر.س', fontSize: 14),
-                  _buildArabicText('التكاليف: ${profit.totalExpenses.toStringAsFixed(2)} ر.س', fontSize: 14),
-                  _buildArabicText(
-                    '${profit.isProfit ? 'ربح' : 'خسارة'}: ${profit.profit.toStringAsFixed(2)} ر.س',
-                    fontSize: 14,
-                    bold: true,
-                    color: profit.isProfit ? PdfColors.green : PdfColors.red,
-                  ),
-                ],
-              ),
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            _buildArabicText(
+              'الإحصائيات',
+              fontSize: 20,
+              bold: true,
             ),
+            pw.SizedBox(height: 20),
+            _buildStatItem('إجمالي التكاليف', '${stats.totalExpenses.toStringAsFixed(2)} ر.س'),
+            _buildStatItem('عدد التكاليف', stats.expenseCount.toString()),
+            _buildStatItem('متوسط التكلفة', '${stats.averageExpense.toStringAsFixed(2)} ر.س'),
+            _buildStatItem('تكاليف اليوم', '${stats.todayExpenses.toStringAsFixed(2)} ر.س'),
+            _buildStatItem('تكاليف الشهر', '${stats.monthlyExpenses.toStringAsFixed(2)} ر.س'),
+
+            if (profit != null) ...[
+              pw.SizedBox(height: 20),
+              pw.Container(
+                padding: const pw.EdgeInsets.all(10),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.blue),
+                  borderRadius: pw.BorderRadius.circular(5),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    _buildArabicText(
+                      'الربح / الخسارة',
+                      fontSize: 16,
+                      bold: true,
+                      color: PdfColors.blue,
+                    ),
+                    pw.SizedBox(height: 5),
+                    _buildArabicText('الإيرادات: ${profit.totalRevenue.toStringAsFixed(2)} ر.س', fontSize: 14),
+                    _buildArabicText('التكاليف: ${profit.totalExpenses.toStringAsFixed(2)} ر.س', fontSize: 14),
+                    _buildArabicText(
+                      '${profit.isProfit ? 'ربح' : 'خسارة'}: ${profit.profit.toStringAsFixed(2)} ر.س',
+                      fontSize: 14,
+                      bold: true,
+                      color: profit.isProfit ? PdfColors.green : PdfColors.red,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
 
   pw.Widget _buildStatItem(String title, String value) {
-    return pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 10),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          _buildArabicText(value, fontSize: 14, bold: true),
-          _buildArabicText(title, fontSize: 14),
-        ],
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        margin: const pw.EdgeInsets.only(bottom: 10),
+        child: pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [
+            _buildArabicText(value, fontSize: 14, bold: true),
+            _buildArabicText(title, fontSize: 14),
+          ],
+        ),
       ),
     );
   }
 
   pw.Widget _buildExpensesList(List<ExpenseEntity> expenses) {
-    return pw.Container(
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.end,
-        children: [
-          _buildArabicText(
-            'قائمة التكاليف',
-            fontSize: 20,
-            bold: true,
-          ),
-          pw.SizedBox(height: 20),
-          pw.Table(
-            border: pw.TableBorder.all(),
-            columnWidths: const {
-              0: pw.FlexColumnWidth(3),
-              1: pw.FlexColumnWidth(2),
-              2: pw.FlexColumnWidth(2),
-              3: pw.FlexColumnWidth(2),
-            },
-            defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
-            children: [
-              // رأس الجدول
-              pw.TableRow(
-                decoration: pw.BoxDecoration(
-                  color: PdfColors.grey300,
-                ),
-                children: [
-                  _buildTableHeaderCell('الوصف'),
-                  _buildTableHeaderCell('المبلغ'),
-                  _buildTableHeaderCell('الفئة'),
-                  _buildTableHeaderCell('التاريخ'),
-                ],
-              ),
-              // بيانات الجدول
-              for (var expense in expenses)
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            _buildArabicText(
+              'قائمة التكاليف',
+              fontSize: 20,
+              bold: true,
+            ),
+            pw.SizedBox(height: 20),
+            pw.Table(
+              border: pw.TableBorder.all(),
+              columnWidths: const {
+                0: pw.FlexColumnWidth(3),
+                1: pw.FlexColumnWidth(2),
+                2: pw.FlexColumnWidth(2),
+                3: pw.FlexColumnWidth(2),
+              },
+              defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+              children: [
+                // رأس الجدول
                 pw.TableRow(
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.grey300,
+                  ),
                   children: [
-                    _buildTableCell(expense.description),
-                    _buildTableCell('${expense.amount.toStringAsFixed(2)} ر.س'),
-                    _buildTableCell(expense.category),
-                    _buildTableCell(DateFormat('yyyy-MM-dd').format(expense.date)),
+                    _buildTableHeaderCell('الوصف'),
+                    _buildTableHeaderCell('المبلغ'),
+                    _buildTableHeaderCell('الفئة'),
+                    _buildTableHeaderCell('التاريخ'),
                   ],
                 ),
-            ],
-          ),
-        ],
+                // بيانات الجدول
+                for (var expense in expenses)
+                  pw.TableRow(
+                    children: [
+                      _buildTableCell(expense.description),
+                      _buildTableCell('${expense.amount.toStringAsFixed(2)} ر.س'),
+                      _buildTableCell(expense.category),
+                      _buildTableCell(DateFormat('yyyy-MM-dd').format(expense.date)),
+                    ],
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -345,67 +359,73 @@ class ExpenseCubit extends Cubit<ExpenseState> {
   }
 
   pw.Widget _buildSingleExpensePage(ExpenseEntity expense) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.all(20),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.end,
-        children: [
-          _buildArabicText(
-            'تفاصيل التكلفة',
-            fontSize: 24,
-            bold: true,
-          ),
-          pw.SizedBox(height: 20),
-          pw.Container(
-            padding: const pw.EdgeInsets.all(20),
-            decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: PdfColors.blue),
-              borderRadius: pw.BorderRadius.circular(10),
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        padding: const pw.EdgeInsets.all(20),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            _buildArabicText(
+              'تفاصيل التكلفة',
+              fontSize: 24,
+              bold: true,
             ),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
-              children: [
-                _buildDetailRow('الوصف:', expense.description),
-                _buildDetailRow('المبلغ:', '${expense.amount.toStringAsFixed(2)} ر.س'),
-                _buildDetailRow('اسم العامل:', expense.workerName),
-                _buildDetailRow('الفئة:', expense.category),
-                _buildDetailRow('تاريخ التكلفة:', DateFormat('yyyy-MM-dd').format(expense.date)),
-                _buildDetailRow('تاريخ الإضافة:', DateFormat('yyyy-MM-dd - HH:mm').format(expense.createdAt)),
-                _buildDetailRow('المعرف:', expense.id),
-              ],
+            pw.SizedBox(height: 20),
+            pw.Container(
+              padding: const pw.EdgeInsets.all(20),
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(color: PdfColors.blue),
+                borderRadius: pw.BorderRadius.circular(10),
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                children: [
+                  _buildDetailRow('الوصف:', expense.description),
+                  _buildDetailRow('المبلغ:', '${expense.amount.toStringAsFixed(2)} ر.س'),
+                  _buildDetailRow('اسم العامل:', expense.workerName),
+                  _buildDetailRow('الفئة:', expense.category),
+                  _buildDetailRow('تاريخ التكلفة:', DateFormat('yyyy-MM-dd').format(expense.date)),
+                  _buildDetailRow('تاريخ الإضافة:', DateFormat('yyyy-MM-dd - HH:mm').format(expense.createdAt)),
+                  _buildDetailRow('المعرف:', expense.id),
+                ],
+              ),
             ),
-          ),
-          pw.SizedBox(height: 30),
-          _buildArabicText(
-            'تم إنشاء هذا التقرير في: ${DateFormat('yyyy-MM-dd - HH:mm').format(DateTime.now())}',
-            fontSize: 12,
-            color: PdfColors.grey,
-          ),
-        ],
+            pw.SizedBox(height: 30),
+            _buildArabicText(
+              'تم إنشاء هذا التقرير في: ${DateFormat('yyyy-MM-dd - HH:mm').format(DateTime.now())}',
+              fontSize: 12,
+              color: PdfColors.grey,
+            ),
+          ],
+        ),
       ),
     );
   }
 
   pw.Widget _buildDetailRow(String label, String value) {
-    return pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 15),
-      child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        mainAxisAlignment: pw.MainAxisAlignment.end,
-        children: [
-          pw.Expanded(
-            child: _buildArabicText(value, fontSize: 14),
-          ),
-          pw.SizedBox(width: 20),
-          pw.Container(
-            width: 100,
-            child: _buildArabicText(
-              label,
-              fontSize: 14,
-              bold: true,
+    return pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Container(
+        margin: const pw.EdgeInsets.only(bottom: 15),
+        child: pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          mainAxisAlignment: pw.MainAxisAlignment.end,
+          children: [
+            pw.Expanded(
+              child: _buildArabicText(value, fontSize: 14),
             ),
-          ),
-        ],
+            pw.SizedBox(width: 20),
+            pw.Container(
+              width: 100,
+              child: _buildArabicText(
+                label,
+                fontSize: 14,
+                bold: true,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -467,6 +487,10 @@ class ExpenseCubit extends Cubit<ExpenseState> {
     try {
       await _ensureFontsLoaded();
 
+      if (!_fontsLoaded) {
+        debugPrint('⚠️ تحذير: استخدام خطوط بديلة - قد يكون العرض غير مثالي');
+      }
+
       final pdf = pw.Document();
 
       // إضافة صفحة العنوان
@@ -518,7 +542,8 @@ class ExpenseCubit extends Cubit<ExpenseState> {
       await OpenFile.open(filePath);
 
     } catch (e) {
-      debugPrint('خطأ في إنشاء التقرير: $e');
+      debugPrint('❌ خطأ في إنشاء التقرير: $e');
+      throw e;
     }
   }
 
@@ -526,6 +551,10 @@ class ExpenseCubit extends Cubit<ExpenseState> {
   Future<void> generatePdfReport() async {
     try {
       await _ensureFontsLoaded();
+
+      if (!_fontsLoaded) {
+        debugPrint('⚠️ تحذير: استخدام خطوط بديلة - قد يكون العرض غير مثالي');
+      }
 
       final pdf = pw.Document();
 
@@ -572,7 +601,8 @@ class ExpenseCubit extends Cubit<ExpenseState> {
         onLayout: (PdfPageFormat format) async => pdf.save(),
       );
     } catch (e) {
-      debugPrint('خطأ في طباعة التقرير: $e');
+      debugPrint('❌ خطأ في طباعة التقرير: $e');
+      throw e;
     }
   }
 
@@ -580,6 +610,10 @@ class ExpenseCubit extends Cubit<ExpenseState> {
   Future<void> generateAndSaveSingleExpensePdf(ExpenseEntity expense) async {
     try {
       await _ensureFontsLoaded();
+
+      if (!_fontsLoaded) {
+        debugPrint('⚠️ تحذير: استخدام خطوط بديلة - قد يكون العرض غير مثالي');
+      }
 
       final pdf = pw.Document();
 
@@ -599,7 +633,8 @@ class ExpenseCubit extends Cubit<ExpenseState> {
       await OpenFile.open(filePath);
 
     } catch (e) {
-      debugPrint('خطأ في حفظ التكلفة الفردية: $e');
+      debugPrint('❌ خطأ في حفظ التكلفة الفردية: $e');
+      throw e;
     }
   }
 
@@ -607,6 +642,10 @@ class ExpenseCubit extends Cubit<ExpenseState> {
   Future<void> generateSingleExpensePdf(ExpenseEntity expense) async {
     try {
       await _ensureFontsLoaded();
+
+      if (!_fontsLoaded) {
+        debugPrint('⚠️ تحذير: استخدام خطوط بديلة - قد يكون العرض غير مثالي');
+      }
 
       final pdf = pw.Document();
 
@@ -623,7 +662,38 @@ class ExpenseCubit extends Cubit<ExpenseState> {
         onLayout: (PdfPageFormat format) async => pdf.save(),
       );
     } catch (e) {
-      debugPrint('خطأ في طباعة التكلفة الفردية: $e');
+      debugPrint('❌ خطأ في طباعة التكلفة الفردية: $e');
+      throw e;
+    }
+  }
+
+  // دالة لاختبار الخطوط العربية
+  Future<void> testArabicFonts() async {
+    debugPrint('🔍 بدء اختبار الخطوط...');
+    await _ensureFontsLoaded();
+
+    if (_fontsLoaded) {
+      debugPrint('🎉 الخطوط جاهزة للاستخدام!');
+      debugPrint('📝 ${PdfUtils.fontStatus}');
+
+      // إنشاء ملف اختبار
+      final pdf = pw.Document();
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          build: (pw.Context context) {
+            return PdfUtils.buildFontTestPage();
+          },
+        ),
+      );
+
+      final fileName = 'اختبار_الخطوط_${DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now())}.pdf';
+      final filePath = await _savePdfFile(pdf, fileName);
+      debugPrint('✅ تم حفظ ملف الاختبار: $filePath');
+
+    } else {
+      debugPrint('❌ هناك مشكلة في تحميل الخطوط');
+      debugPrint('📝 ${PdfUtils.fontStatus}');
     }
   }
 }

@@ -2,12 +2,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:new_wedding_hall/features/payments/presentation/widgets/payment_details_page.dart' show PaymentDetailsPage;
+import 'package:new_wedding_hall/features/payments/presentation/widgets/payment_details_page.dart';
+
 
 import '../../../../core/constants/app_colors.dart';
 import '../../domain/entities/payment_entity.dart';
 import '../cubit/payment_cubit.dart';
-import 'add_payment_dialog.dart';
 
 class PaymentCard extends StatelessWidget {
   final PaymentEntity payment;
@@ -20,246 +20,210 @@ class PaymentCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // الصف الأول: اسم العميل وحالة الدفع
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    payment.clientName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.deepRed,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(payment.status).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _getStatusColor(payment.status).withOpacity(0.3),
-                    ),
-                  ),
-                  child: Text(
-                    _getStatusText(payment.status),
-                    style: TextStyle(
-                      color: _getStatusColor(payment.status),
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // الصف الثاني: اسم الحفلة
-            Text(
-              payment.eventName,
-              style: const TextStyle(fontSize: 14, color: AppColors.deepRed),
-            ),
-            const SizedBox(height: 12),
-
-            // الصف الثالث: المبلغ وتاريخ الدفع
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${payment.amount.toStringAsFixed(0)} ر.س',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.deepRed,
-                  ),
-                ),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.calendar_today,
-                      size: 16,
-                      color: AppColors.gold,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      DateFormat('yyyy-MM-dd').format(payment.paymentDate),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.gold,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // الصف الرابع: طريقة الدفع والملاحظات
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.gray100,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    _getPaymentMethodText(payment.paymentMethod),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.deepRed,
-                    ),
-                  ),
-                ),
-                if (payment.notes.isNotEmpty)
+      child: InkWell(
+        onTap: () {
+          _showPaymentDetails(context);
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // الصف الأول: اسم العميل وحالة الدفع
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
                   Expanded(
                     child: Text(
-                      payment.notes,
+                      payment.clientName,
                       style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.gray500,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.deepRed,
                       ),
                       overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.end,
                     ),
                   ),
-              ],
-            ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(payment.status).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: _getStatusColor(payment.status).withOpacity(0.3),
+                      ),
+                    ),
+                    child: Text(
+                      _getStatusText(payment.status),
+                      style: TextStyle(
+                        color: _getStatusColor(payment.status),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
 
-            // زر الإجراءات
-            const SizedBox(height: 12),
-            _buildActionButtons(context),
-          ],
+              // الصف الثاني: اسم الحفلة
+              Text(
+                payment.eventName,
+                style: const TextStyle(fontSize: 14, color: AppColors.deepRed),
+              ),
+              const SizedBox(height: 12),
+
+              // الصف الثالث: المبلغ وتاريخ الدفع
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${payment.amount.toStringAsFixed(0)} ر.س',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.deepRed,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: AppColors.gold,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        DateFormat('yyyy-MM-dd').format(payment.paymentDate),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.gold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              // الصف الرابع: طريقة الدفع والملاحظات
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.gray100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _getPaymentMethodText(payment.paymentMethod),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.deepRed,
+                      ),
+                    ),
+                  ),
+                  if (payment.notes.isNotEmpty)
+                    Expanded(
+                      child: Text(
+                        payment.notes,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.gray500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
+                      ),
+                    ),
+                ],
+              ),
+
+              // زر الإجراءات
+              const SizedBox(height: 12),
+              _buildActionButtons(context),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // أزرار الإجراءات المحسنة
   Widget _buildActionButtons(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        // زر التعديل
-        _buildActionButton(
-          icon: Icons.edit,
-          color: AppColors.gold,
-          tooltip: 'تعديل الدفعة',
-          onPressed: () => _showEditPaymentDialog(context, payment),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => _showPaymentDetails(context),
+            icon: const Icon(Icons.visibility, size: 16),
+            label: const Text(
+              'عرض التفاصيل',
+              style: TextStyle(fontSize: 12),
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.deepRed,
+              side: const BorderSide(color: AppColors.deepRed),
+              padding: const EdgeInsets.symmetric(vertical: 6),
+            ),
+          ),
         ),
         const SizedBox(width: 8),
-
-        // قائمة المزيد من الخيارات
-        PopupMenuButton<String>(
-          icon: Icon(Icons.more_vert, color: Colors.grey.shade600),
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'details',
-              child: Row(
-                children: [
-                  Icon(Icons.info, color: Colors.blue.shade700),
-                  const SizedBox(width: 8),
-                  const Text('تفاصيل'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'save_pdf',
-              child: Row(
-                children: [
-                  Icon(Icons.save, color: Colors.green.shade700),
-                  const SizedBox(width: 8),
-                  const Text('حفظ PDF'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'print_pdf',
-              child: Row(
-                children: [
-                  Icon(Icons.print, color: Colors.blue.shade700),
-                  const SizedBox(width: 8),
-                  const Text('طباعة PDF'),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(),
-            PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete, color: Colors.red.shade700),
-                  const SizedBox(width: 8),
-                  const Text('حذف'),
-                ],
-              ),
-            ),
-          ],
-          onSelected: (value) {
-            switch (value) {
-              case 'details':
-                _navigateToDetailsPage(context);
-                break;
-              case 'save_pdf':
-                _generateAndSavePdf(context);
-                break;
-              case 'print_pdf':
-                _generateAndPrintPdf(context);
-                break;
-              case 'delete':
-                _showDeleteConfirmation(context, payment.id);
-                break;
-            }
+        IconButton(
+          icon: const Icon(Icons.picture_as_pdf, size: 20),
+          color: AppColors.deepRed,
+          onPressed: () {
+            context.read<PaymentCubit>().generateAndSaveSinglePaymentPdf(payment);
           },
+        ),
+        IconButton(
+          icon: const Icon(Icons.delete, size: 20),
+          color: Colors.red,
+          onPressed: () => _confirmDelete(context),
         ),
       ],
     );
   }
 
-  // زر الإجراءات المصغّر
-  Widget _buildActionButton({
-    required IconData icon,
-    required Color color,
-    required String tooltip,
-    required VoidCallback onPressed,
-  }) {
-    return Tooltip(
-      message: tooltip,
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.3)),
-        ),
-        child: IconButton(
-          icon: Icon(icon, size: 16),
-          onPressed: onPressed,
-          color: color,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-        ),
+  void _showPaymentDetails(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => PaymentDetailsDialog(payment: payment),
+    );
+  }
+
+  void _confirmDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تأكيد الحذف'),
+        content: Text('هل أنت متأكد من حذف دفعة ${payment.clientName}؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<PaymentCubit>().deletePayment(payment.id);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('حذف'),
+          ),
+        ],
       ),
     );
   }
 
-  // دوال مساعدة للحالة وطريقة الدفع
   Color _getStatusColor(String status) {
     switch (status) {
       case 'completed':
@@ -297,80 +261,5 @@ class PaymentCard extends StatelessWidget {
       default:
         return method;
     }
-  }
-
-  // الانتقال لصفحة التفاصيل
-  void _navigateToDetailsPage(BuildContext context) {
-    print('🚀 جارٍ الانتقال إلى صفحة التفاصيل...');
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => PaymentDetailsPage(payment: payment),
-      ),
-    );
-  }
-
-  // عرض dialog التعديل
-  void _showEditPaymentDialog(BuildContext context, PaymentEntity payment) {
-    showDialog(
-      context: context,
-      builder: (context) => AddPaymentDialog(paymentToEdit: payment),
-    );
-  }
-
-  // حفظ PDF فردي
-  void _generateAndSavePdf(BuildContext context) {
-    context.read<PaymentCubit>().generateAndSaveSinglePaymentPdf(payment);
-
-    // إظهار رسالة تأكيد
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('تم حفظ الدفعة كملف PDF على جهازك'),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
-
-  // طباعة PDF فردي
-  void _generateAndPrintPdf(BuildContext context) {
-    context.read<PaymentCubit>().generateSinglePaymentPdf(payment);
-
-    // إظهار رسالة تأكيد
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('جاري إعداد الدفعة للطباعة'),
-        backgroundColor: Colors.blue,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  // عرض تأكيد الحذف
-  void _showDeleteConfirmation(BuildContext context, String paymentId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تأكيد الحذف'),
-        content: const Text('هل أنت متأكد من حذف هذه الدفعة؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () {
-              context.read<PaymentCubit>().deletePayment(paymentId);
-              Navigator.of(context).pop();
-            },
-            child: const Text(
-              'حذف',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
